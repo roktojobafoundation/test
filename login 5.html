@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Login & Register</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            position: relative;
+            width: 1000px;
+            max-width: 95%;
+            height: 600px;
+            max-height: 90vh;
+            background: #fff;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: row;
+        }
+        
+        .welcome-section {
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(45deg, #d10000, #ff5252);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.8s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path fill="rgba(255,255,255,0.05)" d="M0,0 L100,0 L100,100 L0,100 Z" /></svg>');
+            background-size: 100px 100px;
+            transform: rotate(45deg);
+            animation: patternAnimation 20s linear infinite;
+        }
+        
+        @keyframes patternAnimation {
+            0% { transform: rotate(45deg) translateX(0); }
+            100% { transform: rotate(45deg) translateX(-100px); }
+        }
+        
+        .welcome-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .welcome-section h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .welcome-section p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .welcome-btn {
+            padding: 12px 30px;
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            outline: none;
+        }
+        
+        .welcome-btn:hover {
+            background: white;
+            color: #d10000;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(209, 0, 0, 0.2);
+        }
+        
+        .form-section {
+            width: 50%;
+            height: 100%;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: all 0.8s ease;
+            background: #fff;
+            overflow-y: auto;
+        }
+        
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .form-title {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(45deg, #d10000, #ff5252);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 600;
+        }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 14px 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+            font-size: 16px;
+            color: #333;
+            transition: all 0.3s;
+        }
+        
+        .input-group input:focus {
+            border-color: #d10000;
+            box-shadow: 0 0 0 2px rgba(209, 0, 0, 0.2);
+        }
+        
+        .form-btn {
+            width: 100%;
+            padding: 14px 0;
+            background: linear-gradient(45deg, #d10000, #ff5252);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(209, 0, 0, 0.2);
+        }
+        
+        .form-btn:hover {
+            background: linear-gradient(45deg, #ff5252, #d10000);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(209, 0, 0, 0.3);
+        }
+        
+        .form-footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .form-footer a {
+            color: #d10000;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .form-footer a:hover {
+            color: #ff5252;
+            text-decoration: underline;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            position: relative;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #ddd;
+        }
+        
+        .divider::before {
+            left: 0;
+        }
+        
+        .divider::after {
+            right: 0;
+        }
+        
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .social-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #555;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .social-btn:hover {
+            background: linear-gradient(45deg, #d10000, #ff5252);
+            color: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(209, 0, 0, 0.2);
+        }
+        
+        .forgot-password {
+            display: block;
+            text-align: right;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .forgot-password:hover {
+            color: #d10000;
+            text-decoration: underline;
+        }
+        
+        /* Animation classes */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+        
+        /* Switch between forms */
+        .register-mode .welcome-section {
+            transform: translateX(100%);
+        }
+        
+        .register-mode .form-section {
+            transform: translateX(-100%);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 900px) {
+            .container {
+                width: 95%;
+                height: auto;
+                min-height: 600px;
+            }
+            
+            .welcome-section h1 {
+                font-size: 2.2rem;
+            }
+            
+            .welcome-section p {
+                font-size: 1rem;
+            }
+            
+            .form-title {
+                font-size: 1.8rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+                max-height: none;
+                min-height: 100vh;
+                border-radius: 0;
+            }
+            
+            .welcome-section, .form-section {
+                width: 100%;
+                height: auto;
+                padding: 30px;
+            }
+            
+            .welcome-section {
+                padding: 50px 30px;
+                min-height: 40vh;
+            }
+            
+            .form-section {
+                min-height: 60vh;
+                overflow-y: visible;
+            }
+            
+            .register-mode .welcome-section {
+                transform: translateY(-100%);
+            }
+            
+            .register-mode .form-section {
+                transform: translateY(100%);
+            }
+            
+            .welcome-btn {
+                padding: 10px 25px;
+                font-size: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .welcome-section h1 {
+                font-size: 1.8rem;
+                margin-bottom: 15px;
+            }
+            
+            .welcome-section p {
+                font-size: 0.95rem;
+                margin-bottom: 20px;
+            }
+            
+            .form-title {
+                font-size: 1.6rem;
+                margin-bottom: 20px;
+            }
+            
+            .input-group input {
+                padding: 12px 15px;
+                font-size: 15px;
+            }
+            
+            .form-btn {
+                padding: 12px 0;
+                font-size: 15px;
+            }
+            
+            .welcome-section, .form-section {
+                padding: 25px;
+            }
+            
+            .social-login {
+                gap: 10px;
+            }
+            
+            .social-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+            
+            .form-footer {
+                font-size: 14px;
+            }
+        }
+        
+        @media (max-height: 600px) and (orientation: landscape) {
+            .container {
+                min-height: 100vh;
+                max-height: none;
+                border-radius: 0;
+            }
+            
+            .welcome-section {
+                min-height: 100vh;
+            }
+            
+            .form-section {
+                overflow-y: auto;
+                min-height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <!-- Welcome Section (Left Side) -->
+        <div class="welcome-section">
+            <div class="welcome-content">
+                <h1 class="animate" id="welcomeTitle">Hello, Welcome!</h1>
+                <p class="animate delay-1" id="welcomeText">Login to access your account and continue your journey with us.</p>
+                <button class="welcome-btn animate delay-2" id="toggleFormBtn">Register</button>
+            </div>
+        </div>
+        
+        <!-- Form Section (Right Side) -->
+        <div class="form-section">
+            <div class="form-container">
+                <!-- Login Form -->
+                <div id="loginForm">
+                    <h2 class="form-title animate">Login</h2>
+                    <div class="input-group animate delay-1">
+                        <input type="text" placeholder="Username" required>
+                    </div>
+                    <div class="input-group animate delay-2">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <a href="#" class="forgot-password animate delay-2">Forgot password?</a>
+                    <button class="form-btn animate delay-3">Login</button>
+                    <div class="divider animate delay-4">or</div>
+                    <div class="social-login animate delay-5">
+                        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-btn"><i class="fab fa-google"></i></a>
+                        <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+                    </div>
+                    <div class="form-footer animate delay-5">
+                        Don't have an account? <a href="#" id="showRegister">Register</a>
+                    </div>
+                </div>
+                
+                <!-- Register Form (Hidden by default) -->
+                <div id="registerForm" style="display: none;">
+                    <h2 class="form-title animate">Register</h2>
+                    <div class="input-group animate delay-1">
+                        <input type="text" placeholder="Username" required>
+                    </div>
+                    <div class="input-group animate delay-2">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="input-group animate delay-3">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button class="form-btn animate delay-4">Register</button>
+                    <div class="divider animate delay-5">or</div>
+                    <div class="social-login animate delay-5">
+                        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-btn"><i class="fab fa-google"></i></a>
+                        <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+                    </div>
+                    <div class="form-footer animate delay-5">
+                        Already have an account? <a href="#" id="showLogin">Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById('container');
+        const toggleFormBtn = document.getElementById('toggleFormBtn');
+        const showRegister = document.getElementById('showRegister');
+        const showLogin = document.getElementById('showLogin');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const welcomeTitle = document.getElementById('welcomeTitle');
+        const welcomeText = document.getElementById('welcomeText');
+        
+        let isRegisterMode = false;
+        
+        // Toggle between forms
+        function toggleForms() {
+            isRegisterMode = !isRegisterMode;
+            
+            if(isRegisterMode) {
+                container.classList.add('register-mode');
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                welcomeTitle.textContent = 'Welcome Back!';
+                welcomeText.textContent = 'Register to create your account and join our community.';
+                toggleFormBtn.textContent = 'Login';
+            } else {
+                container.classList.remove('register-mode');
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                welcomeTitle.textContent = 'Hello, Welcome!';
+                welcomeText.textContent = 'Login to access your account and continue your journey with us.';
+                toggleFormBtn.textContent = 'Register';
+            }
+            
+            // Re-trigger animations
+            document.querySelectorAll('.animate').forEach(el => {
+                el.style.animation = 'none';
+                void el.offsetWidth; // Trigger reflow
+                el.style.animation = null;
+            });
+        }
+        
+        // Event listeners
+        toggleFormBtn.addEventListener('click', toggleForms);
+        showRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            if(!isRegisterMode) {
+                toggleForms();
+            }
+        });
+        showLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            if(isRegisterMode) {
+                toggleForms();
+            }
+        });
+        
+        // Initialize animations on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.animate').forEach(el => {
+                el.style.opacity = '0';
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                }, 100);
+            });
+        });
+
+        // Handle window resize for better mobile experience
+        window.addEventListener('resize', function() {
+            if(window.innerWidth <= 768) {
+                container.style.maxHeight = 'none';
+                container.style.minHeight = '100vh';
+            } else {
+                container.style.maxHeight = '600px';
+                container.style.minHeight = '600px';
+            }
+        });
+    </script>
+</body>
+</html>
