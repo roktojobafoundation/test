@@ -1,0 +1,2120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RJF Scholarship Examination 2026</title>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js">
+    </script>
+
+    <!-- QR Code Scanner -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js">
+    </script>
+
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js">
+    </script>
+
+    <!-- html2canvas for admit card -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+    </script>
+
+    <style>
+        :root {
+            --primary: #1a237e;
+            --primary-light: #283593;
+            --accent: #ff6d00;
+            --accent-light: #ff9100;
+            --success: #2e7d32;
+            --warning: #f9a825;
+            --danger: #c62828;
+            --info: #0277bd;
+            --bg: #f5f6fa;
+            --card-bg: #ffffff;
+            --text: #212121;
+            --text-light: #616161;
+            --border: #e0e0e0;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            background: linear-gradient(135deg, #e8eaf6 0%, #f5f6fa 30%, #e3f2fd 60%, #fce4ec 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--primary);
+            opacity: 0.06;
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.06;
+            }
+            90% {
+                opacity: 0.06;
+            }
+            100% {
+                transform: translateY(-10vh) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* Main container */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* Header */
+        .app-header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #1a237e 100%);
+            color: #fff;
+            border-radius: var(--radius);
+            padding: 20px 28px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+            animation: slideDown 0.6s ease-out;
+        }
+        @keyframes slideDown {
+            from {
+                transform: translateY(-40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .app-header::after {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: 10%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 109, 0, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            z-index: 1;
+        }
+        .header-logo .logo-icon {
+            width: 52px;
+            height: 52px;
+            background: var(--accent);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 900;
+            box-shadow: 0 6px 20px rgba(255, 109, 0, 0.4);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                box-shadow: 0 6px 20px rgba(255, 109, 0, 0.4);
+            }
+            50% {
+                box-shadow: 0 6px 35px rgba(255, 109, 0, 0.7);
+            }
+        }
+        .header-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+        .header-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.85;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            z-index: 1;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(255, 109, 0, 0.35);
+        }
+        .btn-primary:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(255, 109, 0, 0.45);
+        }
+        .btn-outline {
+            background: transparent;
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #fff;
+            transform: translateY(-2px);
+        }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            border-radius: 20px;
+        }
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-info {
+            background: var(--info);
+            color: #fff;
+        }
+        .btn-warning {
+            background: var(--warning);
+            color: #212121;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1.5px solid var(--border);
+        }
+        .btn-ghost:hover {
+            background: #f5f5f5;
+            border-color: #bdbdbd;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 1px solid transparent;
+            animation: fadeInUp 0.5s ease-out forwards;
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            border-color: #e8eaf6;
+            transform: translateY(-2px);
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .card-accent {
+            border-left: 4px solid var(--accent);
+        }
+        .card-header {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);
+            cursor: default;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), #3949ab);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            color: var(--text);
+            letter-spacing: 0.2px;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 11px 15px;
+            border: 2px solid var(--border);
+            border-radius: 25px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: #fafafa;
+            font-family: var(--font);
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.08);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            .app-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .header-logo {
+                flex-direction: column;
+            }
+            .btn {
+                padding: 8px 15px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        table th,
+        table td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        table th {
+            background: #f8f9ff;
+            font-weight: 700;
+            color: var(--primary);
+            position: sticky;
+            top: 0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        table tbody tr {
+            transition: var(--transition);
+        }
+        table tbody tr:hover {
+            background: #fafbff;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.25s ease;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .modal {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 28px;
+            max-width: 600px;
+            width: 95%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: modalPop 0.3s ease;
+        }
+        @keyframes modalPop {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .modal-close {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: var(--transition);
+        }
+        .modal-close:hover {
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .badge-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .badge-warning {
+            background: #fff8e1;
+            color: #f57f17;
+        }
+        .badge-info {
+            background: #e1f5fe;
+            color: #0277bd;
+        }
+        .badge-danger {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .badge-primary {
+            background: #e8eaf6;
+            color: #1a237e;
+        }
+
+        /* QR Scanner */
+        #qr-reader {
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            border: 2px solid var(--border);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        #qr-reader__dashboard_section_csr button {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #212121;
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: 25px;
+            font-weight: 600;
+            z-index: 2000;
+            animation: slideInRight 0.4s ease, fadeOutRight 0.4s ease 2.6s forwards;
+            box-shadow: var(--shadow-lg);
+            font-size: 0.9rem;
+        }
+        .toast-success {
+            background: #2e7d32;
+        }
+        .toast-error {
+            background: #c62828;
+        }
+        @keyframes slideInRight {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 4px;
+        }
+        .tab-btn {
+            padding: 9px 18px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 20px 20px 0 0;
+            transition: var(--transition);
+            font-size: 0.85rem;
+            color: var(--text-light);
+            position: relative;
+        }
+        .tab-btn.active {
+            color: var(--primary);
+            background: #e8eaf6;
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 3px;
+        }
+        .tab-btn:hover {
+            color: var(--primary);
+            background: #f5f5ff;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e0e0e0;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 40px auto;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Highlight animation */
+        .highlight-row {
+            animation: highlightAnim 1.5s ease;
+        }
+        @keyframes highlightAnim {
+            0%,
+            100% {
+                background: transparent;
+            }
+            50% {
+                background: #fff9c4;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f5f5f5;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 3px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+        .mt-2 {
+            margin-top: 12px;
+        }
+        .mt-3 {
+            margin-top: 18px;
+        }
+        .mb-2 {
+            margin-bottom: 12px;
+        }
+        .mb-3 {
+            margin-bottom: 18px;
+        }
+        .gap-2 {
+            gap: 10px;
+        }
+        .flex-wrap {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .w-full {
+            width: 100%;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: #fff;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .card {
+                box-shadow: none;
+                border: 2px solid #000;
+            }
+        }
+
+        /* Skeleton loading */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Particles -->
+    <div class="bg-particles" id="bgParticles"></div>
+
+    <!-- App Container -->
+    <div id="root" class="app-container">
+        <div class="spinner" id="initialLoader"></div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script>
+        // ==================== FIREBASE CONFIG ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBB4caiGCLBbTulWTwV1p5pgjyU_SKjTxI",
+            authDomain: "rjfse2026.firebaseapp.com",
+            databaseURL: "https://rjfse2026-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rjfse2026",
+            storageBucket: "rjfse2026.firebasestorage.app",
+            messagingSenderId: "39296282344",
+            appId: "1:39296282344:web:6764b39a64e5492a9e235d",
+            measurementId: "G-HG228HY13Z"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const rtdb = firebase.database();
+        const storage = firebase.storage();
+
+        // ==================== GLOBAL STATE ====================
+        const AppState = {
+            currentPortal: null, // 'student-reg', 'student-assist', 'admin-assist', 'admin'
+            adminAuth: null,
+            adminAssistAuth: null,
+            currentUser: null,
+            assignedStudents: [],
+            allStudents: [],
+            allAssistants: [],
+            allVolunteers: [],
+            stats: null,
+        };
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function showToast(message, type = '') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3200);
+        }
+
+        function generateRegID() {
+            const random = Math.floor(100000 + Math.random() * 900000);
+            return `RJFSE26-${random}`;
+        }
+
+        function formatDate(date) {
+            if (!date) return 'N/A';
+            const d = date.toDate ? date.toDate() : new Date(date);
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit',
+                minute: '2-digit' });
+        }
+
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ==================== BACKGROUND PARTICLES ====================
+        function createParticles() {
+            const container = document.getElementById('bgParticles');
+            for (let i = 0; i < 35; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 80 + 20;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = Math.random() * 18 + 10 + 's';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // ==================== MAIN APP RENDERER ====================
+        const root = document.getElementById('root');
+        const initialLoader = document.getElementById('initialLoader');
+
+        function renderApp() {
+            const portal = AppState.currentPortal;
+
+            if (!portal) {
+                renderLandingPage();
+                return;
+            }
+
+            switch (portal) {
+                case 'student-reg':
+                    renderStudentRegistration();
+                    break;
+                case 'student-assist':
+                    renderStudentAssistant();
+                    break;
+                case 'admin-assist':
+                    renderAdminAssistant();
+                    break;
+                case 'admin':
+                    renderAdminPortal();
+                    break;
+                default:
+                    renderLandingPage();
+            }
+        }
+
+        // ==================== LANDING PAGE ====================
+        function renderLandingPage() {
+            AppState.currentPortal = null;
+            root.innerHTML = `
+            <div class="app-header">
+              <div class="header-logo">
+                <div class="logo-icon">RJF</div>
+                <div>
+                  <div class="header-title">RJF Scholarship Examination 2026</div>
+                  <div class="header-subtitle">EMPOWERING FUTURE LEADERS</div>
+                </div>
+              </div>
+            </div>
+            <div style="text-align:center;padding:30px 0;">
+              <h2 style="color:var(--primary);font-size:1.8rem;margin-bottom:8px;">Welcome to RJFSE 2026</h2>
+              <p style="color:var(--text-light);font-size:1rem;margin-bottom:30px;">Select a portal to get started</p>
+            </div>
+            <div class="card-grid" style="max-width:900px;margin:0 auto;">
+              <div class="card card-accent" style="cursor:pointer;text-align:center;" onclick="navigateTo('student-reg')">
+                <div style="font-size:3rem;margin-bottom:10px;">📝</div>
+                <div class="card-header" style="justify-content:center;">Student Registration Portal</div>
+                <p style="color:var(--text-light);font-size:0.85rem;">Register for the scholarship examination quickly and easily</p>
+                <button class="btn btn-primary mt-2">Register Now</button>
+              </div>
+              <div class="card" style="cursor:pointer;text-align:center;border-left:4px solid #0277bd;" onclick="navigateTo('student-assist')">
+                <div style="font-size:3rem;margin-bottom:10px;">🔍</div>
+                <div class="card-header" style="justify-content:center;">Student Assistant Portal</div>
+                <p style="color:var(--text-light);font-size:0.85rem;">Check your registration status, exam room & seat number</p>
+                <button class="btn btn-info mt-2">Check Status</button>
+              </div>
+              <div class="card" style="cursor:pointer;text-align:center;border-left:4px solid #f9a825;" onclick="navigateTo('admin-assist')">
+                <div style="font-size:3rem;margin-bottom:10px;">📋</div>
+                <div class="card-header" style="justify-content:center;">Admin Assistant Portal</div>
+                <p style="color:var(--text-light);font-size:0.85rem;">Manage answer sheet attachment and student verification</p>
+                <button class="btn btn-warning mt-2">Login</button>
+              </div>
+              <div class="card" style="cursor:pointer;text-align:center;border-left:4px solid #c62828;" onclick="navigateTo('admin')">
+                <div style="font-size:3rem;margin-bottom:10px;">⚙️</div>
+                <div class="card-header" style="justify-content:center;">Admin Portal</div>
+                <p style="color:var(--text-light);font-size:0.85rem;">Full control: manage students, assistants, volunteers & reports</p>
+                <button class="btn btn-danger mt-2">Admin Login</button>
+              </div>
+            </div>
+            <div style="text-align:center;padding:20px;color:var(--text-light);font-size:0.8rem;margin-top:20px;">
+              © 2026 RJF Scholarship Examination. All rights reserved.
+            </div>
+          `;
+        }
+
+        function navigateTo(portal) {
+            AppState.currentPortal = portal;
+            renderApp();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==================== STUDENT REGISTRATION PORTAL ====================
+        function renderStudentRegistration() {
+            root.innerHTML = `
+            <div class="app-header no-print">
+              <div class="header-logo">
+                <div class="logo-icon">RJF</div>
+                <div>
+                  <div class="header-title">Student Registration</div>
+                  <div class="header-subtitle">RJFSE 2026</div>
+                </div>
+              </div>
+              <div class="header-actions">
+                <button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button>
+              </div>
+            </div>
+            <div class="card" style="max-width:650px;margin:0 auto;">
+              <div class="card-header">📝 Registration Form</div>
+              <form id="studentRegForm" onsubmit="handleStudentRegistration(event)">
+                <div class="form-row">
+                  <div class="form-group"><label>Full Name *</label><input type="text" id="regName" required placeholder="Enter full name"></div>
+                  <div class="form-group"><label>Father's Name *</label><input type="text" id="regFather" required placeholder="Father's name"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Mother's Name *</label><input type="text" id="regMother" required placeholder="Mother's name"></div>
+                  <div class="form-group"><label>Class Roll *</label><input type="text" id="regRoll" required placeholder="Class roll number"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Class *</label>
+                    <select id="regClass" required onchange="handleClassChange()">
+                      <option value="">Select Class</option>
+                      <option value="8">Class 8</option>
+                      <option value="9">Class 9</option>
+                      <option value="10">Class 10</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Group *</label>
+                    <select id="regGroup" required>
+                      <option value="">Select Group</option>
+                      <option value="Junior">Junior</option>
+                      <option value="Science">Science</option>
+                      <option value="Arts">Arts</option>
+                      <option value="Commerce">Commerce</option>
+                      <option value="Vocational">Vocational</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Gender *</label>
+                    <select id="regGender" required>
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group"><label>Mobile Number *</label><input type="tel" id="regMobile" required placeholder="01XXXXXXXXX" pattern="01[0-9]{9}" title="Enter valid 11-digit mobile number starting with 01"></div>
+                </div>
+                <div class="form-group">
+                  <label>Student Picture (Optional)</label>
+                  <input type="file" id="regPicture" accept="image/*" style="padding:8px;">
+                  <small style="color:var(--text-light);">Upload a clear passport-size photo</small>
+                </div>
+                <div id="regPreview" style="text-align:center;margin:10px 0;"></div>
+                <button type="submit" class="btn btn-primary w-full mt-2" id="regSubmitBtn">📋 Register Now</button>
+              </form>
+              <div id="regResult" style="margin-top:16px;"></div>
+            </div>
+            <div style="text-align:center;padding:12px;">
+              <button class="btn btn-ghost btn-sm" onclick="navigateTo(null)">← Back to Home</button>
+            </div>
+          `;
+
+            // Initialize group dropdown
+            handleClassChange();
+
+            // Picture preview
+            const picInput = document.getElementById('regPicture');
+            if (picInput) {
+                picInput.addEventListener('change', function() {
+                    const preview = document.getElementById('regPreview');
+                    const file = this.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            preview.innerHTML =
+                                `<img src="${e.target.result}" style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);">`;
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        preview.innerHTML = '';
+                    }
+                });
+            }
+        }
+
+        function handleClassChange() {
+            const classSelect = document.getElementById('regClass');
+            const groupSelect = document.getElementById('regGroup');
+            if (!classSelect || !groupSelect) return;
+
+            const selectedClass = classSelect.value;
+            groupSelect.innerHTML = '<option value="">Select Group</option>';
+
+            if (selectedClass === '8') {
+                groupSelect.innerHTML = '<option value="Junior" selected>Junior</option>';
+                groupSelect.disabled = true;
+            } else if (selectedClass === '9' || selectedClass === '10') {
+                const groups = ['Science', 'Arts', 'Commerce', 'Vocational'];
+                groups.forEach(g => {
+                    groupSelect.innerHTML += `<option value="${g}">${g}</option>`;
+                });
+                groupSelect.disabled = false;
+            } else {
+                groupSelect.disabled = false;
+                const allGroups = ['Junior', 'Science', 'Arts', 'Commerce', 'Vocational'];
+                allGroups.forEach(g => {
+                    groupSelect.innerHTML += `<option value="${g}">${g}</option>`;
+                });
+            }
+        }
+
+        async function handleStudentRegistration(event) {
+            event.preventDefault();
+            const submitBtn = document.getElementById('regSubmitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Registering...';
+
+            const regID = generateRegID();
+            const studentData = {
+                registrationID: regID,
+                name: document.getElementById('regName').value.trim(),
+                fatherName: document.getElementById('regFather').value.trim(),
+                motherName: document.getElementById('regMother').value.trim(),
+                classRoll: document.getElementById('regRoll').value.trim(),
+                class: document.getElementById('regClass').value,
+                group: document.getElementById('regGroup').value,
+                gender: document.getElementById('regGender').value,
+                mobile: document.getElementById('regMobile').value.trim(),
+                examRoomNumber: '',
+                sitNumber: '',
+                status: 'Registered',
+                answerSheetAttached: false,
+                answerSheetNumber: '',
+                checkedIn: false,
+                present: false,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            };
+
+            try {
+                // Check for duplicate mobile
+                const existingQuery = await db.collection('students')
+                    .where('mobile', '==', studentData.mobile)
+                    .get();
+                if (!existingQuery.empty) {
+                    throw new Error('A student with this mobile number is already registered.');
+                }
+
+                // Handle picture upload
+                const picFile = document.getElementById('regPicture').files[0];
+                if (picFile) {
+                    const picRef = storage.ref(`student_pictures/${regID}_${picFile.name}`);
+                    const uploadSnapshot = await picRef.put(picFile);
+                    studentData.pictureURL = await uploadSnapshot.ref.getDownloadURL();
+                } else {
+                    studentData.pictureURL = '';
+                }
+
+                // Save to Firestore
+                await db.collection('students').doc(regID).set(studentData);
+
+                // Also save to Realtime DB for quick lookup
+                await rtdb.ref('students/' + regID).set({
+                    ...studentData,
+                    createdAt: Date.now(),
+                });
+
+                const resultDiv = document.getElementById('regResult');
+                resultDiv.innerHTML = `
+              <div style="background:#e8f5e9;padding:20px;border-radius:12px;text-align:center;animation:fadeInUp 0.5s ease;">
+                <div style="font-size:3rem;">✅</div>
+                <h3 style="color:#2e7d32;">Registration Successful!</h3>
+                <p style="font-size:1.2rem;font-weight:700;color:var(--primary);">Your Registration ID:</p>
+                <p style="font-size:2rem;font-weight:900;color:var(--accent);letter-spacing:2px;">${regID}</p>
+                <p style="color:var(--text-light);">Please save this ID for future reference.</p>
+                <p style="color:var(--text-light);">Class: ${studentData.class} | Group: ${studentData.group}</p>
+                <button class="btn btn-primary mt-2" onclick="window.print()">🖨️ Print Confirmation</button>
+              </div>
+            `;
+                document.getElementById('studentRegForm').reset();
+                document.getElementById('regPreview').innerHTML = '';
+                handleClassChange();
+                showToast('Registration successful! ID: ' + regID, 'success');
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+                alert('Registration failed: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '📋 Register Now';
+            }
+        }
+
+        // ==================== STUDENT ASSISTANT PORTAL ====================
+        function renderStudentAssistant() {
+            root.innerHTML = `
+            <div class="app-header no-print">
+              <div class="header-logo">
+                <div class="logo-icon">RJF</div>
+                <div>
+                  <div class="header-title">Student Assistant Portal</div>
+                  <div class="header-subtitle">Check Your Status</div>
+                </div>
+              </div>
+              <div class="header-actions">
+                <button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button>
+              </div>
+            </div>
+            <div class="card" style="max-width:600px;margin:0 auto;">
+              <div class="card-header">🔍 Find Your Registration</div>
+              <div class="tabs">
+                <button class="tab-btn active" onclick="switchSATab('manual', this)">🔢 Enter ID/Mobile</button>
+                <button class="tab-btn" onclick="switchSATab('qr', this)">📷 Scan QR Code</button>
+              </div>
+              <div id="saManualSearch">
+                <div class="form-group"><label>Enter Registration ID or Mobile Number</label>
+                  <input type="text" id="saSearchInput" placeholder="RJFSE26-XXXXXX or 01XXXXXXXXX">
+                </div>
+                <button class="btn btn-primary w-full" onclick="searchStudentAssistant()">🔍 Search</button>
+              </div>
+              <div id="saQRSearch" style="display:none;">
+                <div id="saQRReader" style="max-width:350px;margin:0 auto;"></div>
+                <p class="text-center mt-2" style="color:var(--text-light);font-size:0.8rem;">Point camera at student's QR code</p>
+                <button class="btn btn-ghost btn-sm w-full mt-2" id="saStopQR" style="display:none;" onclick="stopSAQRScanner()">⏹️ Stop Scanner</button>
+              </div>
+              <div id="saResult" style="margin-top:16px;"></div>
+            </div>
+            <div style="text-align:center;padding:12px;">
+              <button class="btn btn-ghost btn-sm" onclick="navigateTo(null)">← Back to Home</button>
+            </div>
+          `;
+
+            // Auto-init QR scanner tab
+            window._saQRScanner = null;
+        }
+
+        function switchSATab(tab, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('saManualSearch').style.display = tab === 'manual' ? 'block' : 'none';
+            document.getElementById('saQRSearch').style.display = tab === 'qr' ? 'block' : 'none';
+            if (tab === 'qr') {
+                initSAQRScanner();
+            } else {
+                stopSAQRScanner();
+            }
+        }
+
+        function initSAQRScanner() {
+            const readerEl = document.getElementById('saQRReader');
+            if (!readerEl || window._saQRScanner) return;
+            readerEl.innerHTML = '';
+            const scanner = new Html5Qrcode('saQRReader');
+            window._saQRScanner = scanner;
+            document.getElementById('saStopQR').style.display = 'block';
+
+            scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 220, height: 220 } },
+                (decodedText) => {
+                    // QR scanned
+                    document.getElementById('saSearchInput').value = decodedText;
+                    stopSAQRScanner();
+                    searchStudentAssistant();
+                },
+                (error) => { /* ignore */ }
+            ).catch(err => {
+                console.log('QR scanner error:', err);
+                showToast('Camera access denied. Please use manual search.', 'error');
+                document.getElementById('saStopQR').style.display = 'none';
+            });
+        }
+
+        function stopSAQRScanner() {
+            if (window._saQRScanner) {
+                window._saQRScanner.stop().catch(() => {});
+                window._saQRScanner = null;
+            }
+            const stopBtn = document.getElementById('saStopQR');
+            if (stopBtn) stopBtn.style.display = 'none';
+            const readerEl = document.getElementById('saQRReader');
+            if (readerEl) readerEl.innerHTML = '<p class="text-center" style="color:var(--text-light);">Scanner stopped.</p>';
+        }
+
+        async function searchStudentAssistant() {
+            const input = document.getElementById('saSearchInput').value.trim();
+            const resultDiv = document.getElementById('saResult');
+            if (!input) {
+                resultDiv.innerHTML =
+                    '<p style="color:var(--danger);text-align:center;">Please enter a Registration ID or Mobile Number.</p>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                let docSnap;
+                // Try as registration ID first
+                if (input.startsWith('RJFSE26-')) {
+                    docSnap = await db.collection('students').doc(input).get();
+                } else {
+                    // Search by mobile
+                    const querySnap = await db.collection('students').where('mobile', '==', input).limit(1).get();
+                    if (!querySnap.empty) {
+                        docSnap = querySnap.docs[0];
+                    } else {
+                        // Try RTDB
+                        const rtdbSnap = await rtdb.ref('students').orderByChild('mobile').equalTo(input).once('value');
+                        if (rtdbSnap.exists()) {
+                            const data = Object.values(rtdbSnap.val())[0];
+                            docSnap = { exists: true, data: () => data, id: data.registrationID };
+                        }
+                    }
+                }
+
+                if (!docSnap || !docSnap.exists) {
+                    resultDiv.innerHTML =
+                        '<p style="color:var(--danger);text-align:center;">❌ No student found with this information.</p>';
+                    return;
+                }
+
+                const student = docSnap.data();
+                const regID = docSnap.id || student.registrationID;
+                const statusColor = student.present ? 'badge-success' : student.checkedIn ? 'badge-info' :
+                    'badge-warning';
+                const statusText = student.present ? 'Present' : student.checkedIn ? 'Checked In' : 'Registered';
+
+                resultDiv.innerHTML = `
+              <div style="background:#f8f9ff;padding:20px;border-radius:12px;animation:fadeInUp 0.5s ease;">
+                <h3 style="color:var(--primary);text-align:center;">📋 Student Details</h3>
+                <table style="width:100%;margin-top:12px;">
+                  <tr><td style="font-weight:700;color:var(--text-light);">Registration ID</td><td><strong>${regID}</strong></td></tr>
+                  <tr><td style="font-weight:700;color:var(--text-light);">Name</td><td>${escapeHTML(student.name)}</td></tr>
+                  <tr><td style="font-weight:700;color:var(--text-light);">Father's Name</td><td>${escapeHTML(student.fatherName)}</td></tr>
+                  <tr><td style="font-weight:700;color:var(--text-light);">Mother's Name</td><td>${escapeHTML(student.motherName)}</td></tr>
+                  <tr><td style="font-weight:700;color:var(--text-light);">Class</td><td>${student.class}</td></tr>
+                  <tr><td style="font-weight:700;color:var(--text-light);">Group</td><td>${student.group}</td></tr>
+                  <tr><td style="font-weight:700;color:var(--text-light);">Class Roll</td><td>${student.classRoll}</td></tr>
+                  <tr><td style="font-weight:700;color:var(--text-light);">Gender</td><td>${student.gender}</td></tr>
+                  <tr><td style="font-weight:700;color:var(--text-light);">Mobile</td><td>${student.mobile}</td></tr>
+                  <tr><td style="font-weight:700;color:var(--text-light);">Status</td><td><span class="badge ${statusColor}">${statusText}</span></td></tr>
+                  <tr style="background:#fff9c4;"><td style="font-weight:700;color:var(--primary);">📌 Exam Room</td><td><strong style="font-size:1.3rem;color:var(--accent);">${student.examRoomNumber || 'Not Assigned Yet'}</strong></td></tr>
+                  <tr style="background:#fff9c4;"><td style="font-weight:700;color:var(--primary);">💺 Sit Number</td><td><strong style="font-size:1.3rem;color:var(--accent);">${student.sitNumber || 'Not Assigned Yet'}</strong></td></tr>
+                </table>
+                ${student.pictureURL ? `<div style="text-align:center;margin-top:12px;"><img src="${student.pictureURL}" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);"></div>` : ''}
+                ${student.examRoomNumber ? `<div style="text-align:center;margin-top:12px;"><button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Print Details</button></div>` : '<p style="text-align:center;color:var(--warning);">⚠️ Exam room & seat not yet assigned. Please check back later.</p>'}
+              </div>
+            `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color:var(--danger);text-align:center;">Error: ${error.message}</p>`;
+            }
+        }
+
+        // ==================== ADMIN ASSISTANT PORTAL ====================
+        function renderAdminAssistant() {
+            if (!AppState.adminAssistAuth) {
+                renderAdminAssistantLogin();
+                return;
+            }
+            renderAdminAssistantDashboard();
+        }
+
+        function renderAdminAssistantLogin() {
+            root.innerHTML = `
+            <div class="app-header no-print">
+              <div class="header-logo">
+                <div class="logo-icon">RJF</div>
+                <div>
+                  <div class="header-title">Admin Assistant Portal</div>
+                  <div class="header-subtitle">Secure Login</div>
+                </div>
+              </div>
+              <div class="header-actions">
+                <button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button>
+              </div>
+            </div>
+            <div class="card" style="max-width:420px;margin:40px auto;">
+              <div class="card-header">🔐 Admin Assistant Login</div>
+              <form onsubmit="handleAdminAssistLogin(event)">
+                <div class="form-group"><label>Email Address</label>
+                  <input type="email" id="aaEmail" value="Admin-assistant@rjfse26.com" required>
+                </div>
+                <div class="form-group"><label>Password</label>
+                  <input type="password" id="aaPassword" value="Admin-ass442" required>
+                </div>
+                <button type="submit" class="btn btn-warning w-full">🔓 Login</button>
+              </form>
+              <div id="aaLoginError" style="margin-top:10px;text-align:center;"></div>
+            </div>
+          `;
+        }
+
+        function handleAdminAssistLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('aaEmail').value.trim();
+            const password = document.getElementById('aaPassword').value.trim();
+            const errorDiv = document.getElementById('aaLoginError');
+
+            if (email === 'Admin-assistant@rjfse26.com' && password === 'Admin-ass442') {
+                AppState.adminAssistAuth = { email, name: 'Admin Assistant', loggedInAt: new Date() };
+                showToast('Login successful!', 'success');
+                renderAdminAssistantDashboard();
+            } else {
+                errorDiv.innerHTML = '<p style="color:var(--danger);">❌ Invalid email or password.</p>';
+                showToast('Login failed!', 'error');
+            }
+        }
+
+        async function renderAdminAssistantDashboard() {
+            root.innerHTML = `
+            <div class="app-header no-print">
+              <div class="header-logo">
+                <div class="logo-icon">RJF</div>
+                <div>
+                  <div class="header-title">Admin Assistant Dashboard</div>
+                  <div class="header-subtitle">Answer Sheet Management</div>
+                </div>
+              </div>
+              <div class="header-actions">
+                <button class="btn btn-outline btn-sm" onclick="logoutAdminAssist()">🚪 Logout</button>
+                <button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button>
+              </div>
+            </div>
+            <div class="card mb-3">
+              <div class="card-header">🔍 Scan Student QR Code</div>
+              <div class="tabs">
+                <button class="tab-btn active" onclick="switchAATab('manual', this)">🔢 Manual Entry</button>
+                <button class="tab-btn" onclick="switchAATab('qr', this)">📷 QR Scanner</button>
+              </div>
+              <div id="aaManualSearch">
+                <div class="form-group"><label>Registration ID or Mobile</label>
+                  <input type="text" id="aaSearchInput" placeholder="RJFSE26-XXXXXX">
+                </div>
+                <button class="btn btn-warning w-full" onclick="searchAAStudent()">🔍 Find Student</button>
+              </div>
+              <div id="aaQRSearch" style="display:none;">
+                <div id="aaQRReader" style="max-width:350px;margin:0 auto;"></div>
+                <button class="btn btn-ghost btn-sm w-full mt-2" id="aaStopQR" style="display:none;" onclick="stopAAQRScanner()">⏹️ Stop</button>
+              </div>
+            </div>
+            <div id="aaStudentDetail" style="margin-bottom:16px;"></div>
+            <div class="card">
+              <div class="card-header">📋 My Assigned Students</div>
+              <div id="aaAssignedList"><div class="spinner"></div></div>
+            </div>
+          `;
+
+            window._aaQRScanner = null;
+            loadAAAssignedStudents();
+        }
+
+        function switchAATab(tab, btn) {
+            const manualEl = document.getElementById('aaManualSearch');
+            const qrEl = document.getElementById('aaQRSearch');
+            if (!manualEl || !qrEl) return;
+            document.querySelectorAll('#root .tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            manualEl.style.display = tab === 'manual' ? 'block' : 'none';
+            qrEl.style.display = tab === 'qr' ? 'block' : 'none';
+            if (tab === 'qr') initAAQRScanner();
+            else stopAAQRScanner();
+        }
+
+        function initAAQRScanner() {
+            const readerEl = document.getElementById('aaQRReader');
+            if (!readerEl || window._aaQRScanner) return;
+            readerEl.innerHTML = '';
+            const scanner = new Html5Qrcode('aaQRReader');
+            window._aaQRScanner = scanner;
+            document.getElementById('aaStopQR').style.display = 'block';
+            scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 220, height: 220 } },
+                (decodedText) => {
+                    document.getElementById('aaSearchInput').value = decodedText;
+                    stopAAQRScanner();
+                    searchAAStudent();
+                },
+                () => {}
+            ).catch(() => {
+                showToast('Camera access denied', 'error');
+                document.getElementById('aaStopQR').style.display = 'none';
+            });
+        }
+
+        function stopAAQRScanner() {
+            if (window._aaQRScanner) {
+                window._aaQRScanner.stop().catch(() => {});
+                window._aaQRScanner = null;
+            }
+            const stopBtn = document.getElementById('aaStopQR');
+            if (stopBtn) stopBtn.style.display = 'none';
+        }
+
+        async function searchAAStudent() {
+            const input = document.getElementById('aaSearchInput').value.trim();
+            const detailDiv = document.getElementById('aaStudentDetail');
+            if (!input) {
+                detailDiv.innerHTML = '<p style="color:var(--danger);">Please enter a Registration ID.</p>';
+                return;
+            }
+            detailDiv.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                let docSnap;
+                if (input.startsWith('RJFSE26-')) {
+                    docSnap = await db.collection('students').doc(input).get();
+                } else {
+                    const qSnap = await db.collection('students').where('mobile', '==', input).limit(1).get();
+                    docSnap = qSnap.empty ? null : qSnap.docs[0];
+                }
+                if (!docSnap || !docSnap.exists) {
+                    detailDiv.innerHTML = '<p style="color:var(--danger);">❌ Student not found.</p>';
+                    return;
+                }
+                const s = docSnap.data();
+                const rid = docSnap.id;
+                detailDiv.innerHTML = `
+              <div class="card card-accent" style="border-left-color:#f9a825;">
+                <h4>Student: ${escapeHTML(s.name)} | ID: ${rid}</h4>
+                <p>Class: ${s.class} | Group: ${s.group} | Room: ${s.examRoomNumber || 'N/A'} | Sit: ${s.sitNumber || 'N/A'}</p>
+                <p>Status: <span class="badge ${s.present ? 'badge-success' : 'badge-warning'}">${s.present ? 'Present' : 'Not Present'}</span>
+                   | Answer Sheet: <span class="badge ${s.answerSheetAttached ? 'badge-success' : 'badge-danger'}">${s.answerSheetAttached ? 'Attached' : 'Not Attached'}</span></p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="btn btn-success btn-sm" onclick="markAAPresent('${rid}')">✅ Mark Present</button>
+                  <button class="btn btn-info btn-sm" onclick="openAnswerSheetScan('${rid}')">📎 Attach Answer Sheet</button>
+                </div>
+                <div id="aaAnswerSheetSection_${rid}" style="margin-top:10px;"></div>
+              </div>
+            `;
+            } catch (e) {
+                detailDiv.innerHTML = `<p style="color:var(--danger);">Error: ${e.message}</p>`;
+            }
+        }
+
+        async function markAAPresent(regID) {
+            try {
+                await db.collection('students').doc(regID).update({ present: true, checkedIn: true,
+                    status: 'Present' });
+                await rtdb.ref('students/' + regID).update({ present: true, checkedIn: true, status: 'Present' });
+                showToast('Student marked as Present!', 'success');
+                searchAAStudent();
+                loadAAAssignedStudents();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        function openAnswerSheetScan(regID) {
+            const section = document.getElementById('aaAnswerSheetSection_' + regID);
+            if (!section) return;
+            section.innerHTML = `
+            <div style="border:2px dashed #f9a825;padding:12px;border-radius:10px;margin-top:8px;">
+              <p><strong>📎 Scan Answer Sheet QR Code</strong></p>
+              <div id="answerSheetQR_${regID}" style="max-width:300px;"></div>
+              <button class="btn btn-ghost btn-sm mt-2" id="stopAnswerQR_${regID}" style="display:none;" onclick="stopAnswerSheetScanner('${regID}')">⏹️ Stop</button>
+              <div id="answerSheetResult_${regID}" style="margin-top:8px;"></div>
+            </div>
+          `;
+            initAnswerSheetScanner(regID);
+        }
+
+        function initAnswerSheetScanner(regID) {
+            const readerEl = document.getElementById('answerSheetQR_' + regID);
+            if (!readerEl) return;
+            readerEl.innerHTML = '';
+            const scanner = new Html5Qrcode('answerSheetQR_' + regID);
+            window['_ansScanner_' + regID] = scanner;
+            document.getElementById('stopAnswerQR_' + regID).style.display = 'block';
+
+            scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 200, height: 200 } },
+                async (decodedText) => {
+                    // Answer sheet QR scanned
+                    stopAnswerSheetScanner(regID);
+                    const resultDiv = document.getElementById('answerSheetResult_' + regID);
+                    resultDiv.innerHTML = `
+                <p>Scanned Answer Sheet: <strong>${decodedText}</strong></p>
+                <button class="btn btn-success btn-sm" onclick="confirmAnswerSheet('${regID}', '${decodedText.replace(/'/g, "\\'")}')">✅ OK - Attach This Sheet</button>
+                <button class="btn btn-ghost btn-sm" onclick="openAnswerSheetScan('${regID}')">🔄 Rescan</button>
+              `;
+                },
+                () => {}
+            ).catch(() => {
+                showToast('Camera error', 'error');
+                document.getElementById('stopAnswerQR_' + regID).style.display = 'none';
+            });
+        }
+
+        function stopAnswerSheetScanner(regID) {
+            const scanner = window['_ansScanner_' + regID];
+            if (scanner) {
+                scanner.stop().catch(() => {});
+                delete window['_ansScanner_' + regID];
+            }
+            const stopBtn = document.getElementById('stopAnswerQR_' + regID);
+            if (stopBtn) stopBtn.style.display = 'none';
+        }
+
+        async function confirmAnswerSheet(regID, sheetNumber) {
+            try {
+                await db.collection('students').doc(regID).update({
+                    answerSheetAttached: true,
+                    answerSheetNumber: sheetNumber,
+                    status: 'Completed',
+                });
+                await rtdb.ref('students/' + regID).update({
+                    answerSheetAttached: true,
+                    answerSheetNumber: sheetNumber,
+                    status: 'Completed',
+                });
+                showToast('Answer sheet attached successfully! ✅', 'success');
+                document.getElementById('aaStudentDetail').innerHTML =
+                    '<p style="color:var(--success);text-align:center;">✅ Answer sheet attached! Status: Completed</p>';
+                loadAAAssignedStudents();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        async function loadAAAssignedStudents() {
+            const listDiv = document.getElementById('aaAssignedList');
+            if (!listDiv) return;
+            listDiv.innerHTML = '<div class="spinner"></div>';
+            try {
+                const snap = await db.collection('students').orderBy('createdAt', 'desc').limit(50).get();
+                const students = [];
+                snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+                students.sort((a, b) => (a.classRoll || '').localeCompare(b.classRoll || ''));
+                if (students.length === 0) {
+                    listDiv.innerHTML = '<p class="text-center" style="color:var(--text-light);">No students assigned.</p>';
+                    return;
+                }
+                let html = `<div class="table-container"><table><thead><tr>
+              <th>#</th><th>Reg ID</th><th>Name</th><th>Class</th><th>Room</th><th>Sit</th><th>Present</th><th>Sheet</th><th>Status</th>
+            </tr></thead><tbody>`;
+                students.forEach((s, i) => {
+                    html += `
+                <tr style="cursor:pointer;" onclick="document.getElementById('aaSearchInput').value='${s.id}';searchAAStudent();window.scrollTo({top:200,behavior:'smooth'});">
+                  <td>${i+1}</td>
+                  <td>${s.id}</td>
+                  <td>${escapeHTML(s.name)}</td>
+                  <td>${s.class}</td>
+                  <td>${s.examRoomNumber || '-'}</td>
+                  <td>${s.sitNumber || '-'}</td>
+                  <td><span class="badge ${s.present?'badge-success':'badge-danger'}">${s.present?'Yes':'No'}</span></td>
+                  <td><span class="badge ${s.answerSheetAttached?'badge-success':'badge-warning'}">${s.answerSheetAttached?'Yes':'No'}</span></td>
+                  <td><span class="badge badge-info">${s.status||'Registered'}</span></td>
+                </tr>`;
+                });
+                html += '</tbody></table></div>';
+                listDiv.innerHTML = html;
+            } catch (e) {
+                listDiv.innerHTML = `<p style="color:var(--danger);">Error: ${e.message}</p>`;
+            }
+        }
+
+        function logoutAdminAssist() {
+            AppState.adminAssistAuth = null;
+            stopAAQRScanner();
+            renderApp();
+            showToast('Logged out.', '');
+        }
+
+        // ==================== ADMIN PORTAL ====================
+        function renderAdminPortal() {
+            if (!AppState.adminAuth) {
+                renderAdminLogin();
+                return;
+            }
+            renderAdminDashboard();
+        }
+
+        function renderAdminLogin() {
+            root.innerHTML = `
+            <div class="app-header no-print">
+              <div class="header-logo"><div class="logo-icon">RJF</div><div><div class="header-title">Admin Portal</div><div class="header-subtitle">Secure Access</div></div></div>
+              <div class="header-actions"><button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button></div>
+            </div>
+            <div class="card" style="max-width:420px;margin:40px auto;">
+              <div class="card-header">🔐 Admin Login</div>
+              <form onsubmit="handleAdminLogin(event)">
+                <div class="form-group"><label>Email</label><input type="email" id="adminEmail" value="admintasrik@rjfse26.com" required></div>
+                <div class="form-group"><label>Password</label><input type="password" id="adminPassword" value="Tasrik@303" required></div>
+                <button type="submit" class="btn btn-danger w-full">🔓 Login</button>
+              </form>
+              <div id="adminLoginError" style="margin-top:10px;text-align:center;"></div>
+            </div>
+          `;
+        }
+
+        function handleAdminLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+            if (email === 'admintasrik@rjfse26.com' && password === 'Tasrik@303') {
+                AppState.adminAuth = { email, name: 'Admin Tasrik', loggedInAt: new Date() };
+                showToast('Admin login successful!', 'success');
+                renderAdminDashboard();
+            } else {
+                document.getElementById('adminLoginError').innerHTML =
+                    '<p style="color:var(--danger);">❌ Invalid credentials.</p>';
+                showToast('Login failed!', 'error');
+            }
+        }
+
+        async function renderAdminDashboard() {
+            root.innerHTML = `
+            <div class="app-header no-print">
+              <div class="header-logo"><div class="logo-icon">RJF</div><div><div class="header-title">Admin Dashboard</div><div class="header-subtitle">Full Control Panel</div></div></div>
+              <div class="header-actions">
+                <button class="btn btn-outline btn-sm" onclick="logoutAdmin()">🚪 Logout</button>
+                <button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button>
+              </div>
+            </div>
+            <div class="tabs no-print" style="flex-wrap:wrap;">
+              <button class="tab-btn active" onclick="switchAdminTab('dashboard',this)">📊 Dashboard</button>
+              <button class="tab-btn" onclick="switchAdminTab('students',this)">👨‍🎓 Students</button>
+              <button class="tab-btn" onclick="switchAdminTab('assistants',this)">👥 Assistants</button>
+              <button class="tab-btn" onclick="switchAdminTab('volunteers',this)">🙋 Volunteers</button>
+              <button class="tab-btn" onclick="switchAdminTab('reports',this)">📄 Reports</button>
+            </div>
+            <div id="adminTabContent"><div class="spinner"></div></div>
+          `;
+            await loadAdminDashboardStats();
+            switchAdminTab('dashboard', document.querySelector('.tab-btn.active'));
+        }
+
+        async function loadAdminDashboardStats() {
+            try {
+                const snap = await db.collection('students').get();
+                const students = [];
+                snap.forEach(d => students.push({ id: d.id, ...d.data() }));
+                const asstSnap = await db.collection('adminAssistants').get();
+                const assistants = [];
+                asstSnap.forEach(d => assistants.push({ id: d.id, ...d.data() }));
+                const volSnap = await db.collection('volunteers').get();
+                const volunteers = [];
+                volSnap.forEach(d => volunteers.push({ id: d.id, ...d.data() }));
+
+                AppState.allStudents = students;
+                AppState.allAssistants = assistants;
+                AppState.allVolunteers = volunteers;
+                AppState.stats = {
+                    total: students.length,
+                    class8: students.filter(s => s.class === '8').length,
+                    class9: students.filter(s => s.class === '9').length,
+                    class10: students.filter(s => s.class === '10').length,
+                    present: students.filter(s => s.present).length,
+                    present8: students.filter(s => s.class === '8' && s.present).length,
+                    present9: students.filter(s => s.class === '9' && s.present).length,
+                    present10: students.filter(s => s.class === '10' && s.present).length,
+                    absent: students.filter(s => !s.present).length,
+                    completed: students.filter(s => s.status === 'Completed').length,
+                    totalAssistants: assistants.length,
+                    totalVolunteers: volunteers.length,
+                };
+            } catch (e) {
+                console.error('Stats load error:', e);
+                AppState.stats = { total: 0, class8: 0, class9: 0, class10: 0, present: 0, present8: 0, present9: 0,
+                    present10: 0, absent: 0, completed: 0, totalAssistants: 0, totalVolunteers: 0 };
+                AppState.allStudents = [];
+                AppState.allAssistants = [];
+                AppState.allVolunteers = [];
+            }
+        }
+
+        function switchAdminTab(tab, btn) {
+            document.querySelectorAll('#root .tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            const content = document.getElementById('adminTabContent');
+            if (!content) return;
+            const stats = AppState.stats || {};
+            const students = AppState.allStudents || [];
+            const assistants = AppState.allAssistants || [];
+            const volunteers = AppState.allVolunteers || [];
+
+            switch (tab) {
+                case 'dashboard':
+                    content.innerHTML = `
+                <div class="card-grid">
+                  <div class="card stat-card"><div class="stat-number">${stats.total||0}</div><div class="stat-label">Total Registered</div></div>
+                  <div class="card stat-card"><div class="stat-number">${stats.class8||0}</div><div class="stat-label">Class 8</div></div>
+                  <div class="card stat-card"><div class="stat-number">${stats.class9||0}</div><div class="stat-label">Class 9</div></div>
+                  <div class="card stat-card"><div class="stat-number">${stats.class10||0}</div><div class="stat-label">Class 10</div></div>
+                </div>
+                <div class="card-grid mt-3">
+                  <div class="card stat-card" style="background:#e8f5e9;"><div class="stat-number" style="color:#2e7d32;">${stats.present||0}</div><div class="stat-label">Total Present</div></div>
+                  <div class="card stat-card" style="background:#fff3e0;"><div class="stat-number" style="color:#e65100;">${stats.absent||0}</div><div class="stat-label">Total Absent</div></div>
+                  <div class="card stat-card" style="background:#e1f5fe;"><div class="stat-number" style="color:#0277bd;">${stats.completed||0}</div><div class="stat-label">Completed</div></div>
+                </div>
+                <div class="card-grid mt-3">
+                  <div class="card stat-card"><div class="stat-number">${stats.present8||0}</div><div class="stat-label">Class 8 Present</div></div>
+                  <div class="card stat-card"><div class="stat-number">${stats.present9||0}</div><div class="stat-label">Class 9 Present</div></div>
+                  <div class="card stat-card"><div class="stat-number">${stats.present10||0}</div><div class="stat-label">Class 10 Present</div></div>
+                </div>
+                <div class="card-grid mt-3">
+                  <div class="card stat-card" style="background:#fce4ec;"><div class="stat-number" style="color:#c62828;">${stats.totalAssistants||0}</div><div class="stat-label">Active Assistants</div></div>
+                  <div class="card stat-card" style="background:#f3e5f5;"><div class="stat-number" style="color:#6a1b9a;">${stats.totalVolunteers||0}</div><div class="stat-label">Total Volunteers</div></div>
+                </div>
+              `;
+                    break;
+
+                case 'students':
+                    let studentRows = '';
+                    const sortedStudents = [...students].sort((a, b) => (a.classRoll || '').localeCompare(b.classRoll ||
+                        ''));
+                    sortedStudents.forEach((s, i) => {
+                        studentRows += `
+                  <tr class="${s.present?'':'highlight-row'}" onclick="openStudentDetailModal('${s.id||s.registrationID}')" style="cursor:pointer;">
+                    <td>${i+1}</td><td>${s.id||s.registrationID}</td><td>${escapeHTML(s.name)}</td>
+                    <td>${s.class}</td><td>${s.group}</td><td>${s.examRoomNumber||'-'}</td><td>${s.sitNumber||'-'}</td>
+                    <td><span class="badge ${s.present?'badge-success':'badge-danger'}">${s.present?'Present':'Absent'}</span></td>
+                    <td><span class="badge badge-info">${s.status||'Registered'}</span></td>
+                  </tr>`;
+                    });
+                    content.innerHTML = `
+                <div class="card">
+                  <div class="card-header">👨‍🎓 All Registered Students (${students.length})</div>
+                  <div class="form-row mb-3">
+                    <input type="text" id="studentSearch" placeholder="🔍 Search by name, ID, or mobile..." oninput="filterStudentTable()" style="padding:10px 15px;border-radius:25px;border:2px solid #e0e0e0;width:100%;">
+                    <select id="studentClassFilter" onchange="filterStudentTable()" style="padding:10px 15px;border-radius:25px;border:2px solid #e0e0e0;">
+                      <option value="all">All Classes</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option>
+                    </select>
+                  </div>
+                  <div class="table-container"><table id="studentTable"><thead><tr>
+                    <th>#</th><th>Reg ID</th><th>Name</th><th>Class</th><th>Group</th><th>Room</th><th>Sit</th><th>Present</th><th>Status</th>
+                  </tr></thead><tbody>${studentRows}</tbody></table></div>
+                </div>
+              `;
+                    break;
+
+                case 'assistants':
+                    let asstRows = assistants.map((a, i) => `
+                <tr><td>${i+1}</td><td>${escapeHTML(a.name)}</td><td>${a.age||'-'}</td><td>${a.mobile}</td><td>${a.assignedClass||'All'}</td><td>${formatDate(a.createdAt)}</td></tr>
+              `).join('');
+                    content.innerHTML = `
+                <div class="card">
+                  <div class="card-header">👥 Admin Assistants (${assistants.length})</div>
+                  <button class="btn btn-primary btn-sm mb-3" onclick="openAddAssistantModal()">➕ Add Assistant</button>
+                  <div class="table-container"><table><thead><tr><th>#</th><th>Name</th><th>Age</th><th>Mobile</th><th>Assigned Class</th><th>Created</th></tr></thead><tbody>${asstRows||'<tr><td colspan="6">No assistants</td></tr>'}</tbody></table></div>
+                </div>
+              `;
+                    break;
+
+                case 'volunteers':
+                    let volRows = volunteers.map((v, i) => `
+                <tr><td>${i+1}</td><td>${escapeHTML(v.name)}</td><td>${v.mobile}</td><td>${v.gender||'-'}</td><td>${escapeHTML(v.address||'-')}</td><td>${v.workArea||'-'}</td></tr>
+              `).join('');
+                    content.innerHTML = `
+                <div class="card">
+                  <div class="card-header">🙋 Volunteers (${volunteers.length})</div>
+                  <button class="btn btn-primary btn-sm mb-3" onclick="openAddVolunteerModal()">➕ Add Volunteer</button>
+                  <div class="table-container"><table><thead><tr><th>#</th><th>Name</th><th>Mobile</th><th>Gender</th><th>Address</th><th>Work Area</th></tr></thead><tbody>${volRows||'<tr><td colspan="6">No volunteers</td></tr>'}</tbody></table></div>
+                </div>
+              `;
+                    break;
+
+                case 'reports':
+                    content.innerHTML = `
+                <div class="card-grid">
+                  <div class="card text-center">
+                    <div class="card-header">📄 Generate Reports</div>
+                    <button class="btn btn-danger w-full mb-2" onclick="generatePDFReport('all')">📥 All Students Report</button>
+                    <button class="btn btn-info w-full mb-2" onclick="generatePDFReport('present')">✅ Present Students</button>
+                    <button class="btn btn-warning w-full mb-2" onclick="generatePDFReport('absent')">❌ Absent Students</button>
+                    <button class="btn btn-success w-full" onclick="generatePDFReport('completed')">🎯 Completed Students</button>
+                  </div>
+                  <div class="card text-center">
+                    <div class="card-header">📋 Class-wise Reports</div>
+                    <button class="btn btn-primary w-full mb-2" onclick="generatePDFReport('class8')">Class 8 Report</button>
+                    <button class="btn btn-primary w-full mb-2" onclick="generatePDFReport('class9')">Class 9 Report</button>
+                    <button class="btn btn-primary w-full" onclick="generatePDFReport('class10')">Class 10 Report</button>
+                  </div>
+                </div>
+              `;
+                    break;
+            }
+        }
+
+        function filterStudentTable() {
+            const searchTerm = (document.getElementById('studentSearch')?.value || '').toLowerCase();
+            const classFilter = document.getElementById('studentClassFilter')?.value || 'all';
+            const table = document.getElementById('studentTable');
+            if (!table) return;
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const cls = row.cells[3]?.textContent || '';
+                const matchSearch = !searchTerm || text.includes(searchTerm);
+                const matchClass = classFilter === 'all' || cls === classFilter;
+                row.style.display = matchSearch && matchClass ? '' : 'none';
+            });
+        }
+
+        async function openStudentDetailModal(regID) {
+            try {
+                const docSnap = await db.collection('students').doc(regID).get();
+                if (!docSnap.exists) { showToast('Student not found', 'error'); return; }
+                const s = docSnap.data();
+                const modalHTML = `
+              <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+                <div class="modal">
+                  <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                  <h3 style="color:var(--primary);">📋 Student Detail: ${escapeHTML(s.name)}</h3>
+                  <table style="width:100%;margin:12px 0;">
+                    <tr><td><strong>Reg ID</strong></td><td>${regID}</td></tr>
+                    <tr><td><strong>Name</strong></td><td>${escapeHTML(s.name)}</td></tr>
+                    <tr><td><strong>Father</strong></td><td>${escapeHTML(s.fatherName)}</td></tr>
+                    <tr><td><strong>Mother</strong></td><td>${escapeHTML(s.motherName)}</td></tr>
+                    <tr><td><strong>Class</strong></td><td>${s.class}</td></tr>
+                    <tr><td><strong>Group</strong></td><td>${s.group}</td></tr>
+                    <tr><td><strong>Roll</strong></td><td>${s.classRoll}</td></tr>
+                    <tr><td><strong>Mobile</strong></td><td>${s.mobile}</td></tr>
+                    <tr><td><strong>Status</strong></td><td>${s.status||'Registered'}</td></tr>
+                  </table>
+                  <div class="form-row">
+                    <div class="form-group"><label>Exam Room Number</label><input type="text" id="editRoom" value="${s.examRoomNumber||''}" placeholder="e.g. 301"></div>
+                    <div class="form-group"><label>Sit Number</label><input type="text" id="editSit" value="${s.sitNumber||''}" placeholder="e.g. A12"></div>
+                  </div>
+                  <div class="form-group"><label>Status</label>
+                    <select id="editStatus">
+                      <option value="Registered" ${s.status==='Registered'?'selected':''}>Registered</option>
+                      <option value="Present" ${s.status==='Present'?'selected':''}>Present</option>
+                      <option value="Answer Sheet Attached" ${s.status==='Answer Sheet Attached'?'selected':''}>Answer Sheet Attached</option>
+                      <option value="Completed" ${s.status==='Completed'?'selected':''}>Completed</option>
+                    </select>
+                  </div>
+                  <button class="btn btn-primary w-full" onclick="updateStudentDetail('${regID}')">💾 Save Changes</button>
+                  <button class="btn btn-info w-full mt-2" onclick="generateAdmitCard('${regID}')">🎫 Generate Admit Card</button>
+                </div>
+              </div>
+            `;
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = modalHTML;
+                document.body.appendChild(tempDiv.firstElementChild);
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        async function updateStudentDetail(regID) {
+            const room = document.getElementById('editRoom').value.trim();
+            const sit = document.getElementById('editSit').value.trim();
+            const status = document.getElementById('editStatus').value;
+            const present = status === 'Present' || status === 'Answer Sheet Attached' || status === 'Completed';
+            try {
+                await db.collection('students').doc(regID).update({
+                    examRoomNumber: room,
+                    sitNumber: sit,
+                    status: status,
+                    present: present,
+                    checkedIn: present,
+                });
+                await rtdb.ref('students/' + regID).update({
+                    examRoomNumber: room,
+                    sitNumber: sit,
+                    status: status,
+                    present: present,
+                    checkedIn: present,
+                });
+                showToast('Student updated!', 'success');
+                document.querySelector('.modal-overlay')?.remove();
+                await loadAdminDashboardStats();
+                switchAdminTab('students', document.querySelector('.tab-btn'));
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        async function generateAdmitCard(regID) {
+            try {
+                const docSnap = await db.collection('students').doc(regID).get();
+                if (!docSnap.exists) { showToast('Student not found', 'error'); return; }
+                const s = docSnap.data();
+                const admitHTML = `
+              <div id="admitCardPrint" style="background:#fff;padding:30px;border:3px solid #1a237e;border-radius:16px;max-width:500px;margin:20px auto;font-family:'Segoe UI',sans-serif;">
+                <div style="text-align:center;border-bottom:2px solid #1a237e;padding-bottom:12px;">
+                  <h2 style="color:#1a237e;margin:0;">RJF Scholarship Examination 2026</h2>
+                  <p style="color:#616161;">Admit Card / Seat Token</p>
+                </div>
+                <div style="padding:16px;">
+                  <p><strong>Registration ID:</strong> ${regID}</p>
+                  <p><strong>Name:</strong> ${escapeHTML(s.name)}</p>
+                  <p><strong>Father:</strong> ${escapeHTML(s.fatherName)}</p>
+                  <p><strong>Class:</strong> ${s.class} | <strong>Group:</strong> ${s.group}</p>
+                  <p><strong>Roll:</strong> ${s.classRoll}</p>
+                  <div style="background:#fff9c4;padding:12px;border-radius:8px;margin:12px 0;">
+                    <p style="font-size:1.2rem;"><strong>📌 Exam Room:</strong> ${s.examRoomNumber||'TBD'}</p>
+                    <p style="font-size:1.2rem;"><strong>💺 Seat Number:</strong> ${s.sitNumber||'TBD'}</p>
+                  </div>
+                  <p style="font-size:0.8rem;color:#616161;">Please bring this admit card on exam day.</p>
+                </div>
+              </div>
+            `;
+                const printWindow = window.open('', '_blank', 'width=600,height=700');
+                printWindow.document.write(`
+              <html><head><title>Admit Card - ${regID}</title></head>
+              <body>${admitHTML}<script>window.onload=function(){window.print();}<\/script></body></html>
+            `);
+                printWindow.document.close();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        function openAddAssistantModal() {
+            const modalHTML = `
+            <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+              <div class="modal">
+                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                <h3>➕ Add Admin Assistant</h3>
+                <form onsubmit="handleAddAssistant(event)">
+                  <div class="form-group"><label>Name *</label><input type="text" id="asstName" required></div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Age</label><input type="number" id="asstAge"></div>
+                    <div class="form-group"><label>Mobile *</label><input type="tel" id="asstMobile" required></div>
+                  </div>
+                  <div class="form-group"><label>Assigned Class</label>
+                    <select id="asstClass"><option value="All">All</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option></select>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-full">💾 Save Assistant</button>
+                </form>
+              </div>
+            </div>
+          `;
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = modalHTML;
+                document.body.appendChild(tempDiv.firstElementChild);
+            }
+
+            async function handleAddAssistant(event) {
+                event.preventDefault();
+                const data = {
+                    name: document.getElementById('asstName').value.trim(),
+                    age: document.getElementById('asstAge').value || '',
+                    mobile: document.getElementById('asstMobile').value.trim(),
+                    assignedClass: document.getElementById('asstClass').value,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                };
+                try {
+                    await db.collection('adminAssistants').add(data);
+                    showToast('Assistant added!', 'success');
+                    document.querySelector('.modal-overlay')?.remove();
+                    await loadAdminDashboardStats();
+                    switchAdminTab('assistants', document.querySelector('.tab-btn'));
+                } catch (e) {
+                    showToast('Error: ' + e.message, 'error');
+                }
+            }
+
+            function openAddVolunteerModal() {
+                const modalHTML = `
+            <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+              <div class="modal">
+                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                <h3>🙋 Add Volunteer</h3>
+                <form onsubmit="handleAddVolunteer(event)">
+                  <div class="form-row">
+                    <div class="form-group"><label>Name *</label><input type="text" id="volName" required></div>
+                    <div class="form-group"><label>Mobile *</label><input type="tel" id="volMobile" required></div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label>Gender</label><select id="volGender"><option>Male</option><option>Female</option><option>Other</option></select></div>
+                    <div class="form-group"><label>Address</label><input type="text" id="volAddress"></div>
+                  </div>
+                  <div class="form-group"><label>Work Area</label><input type="text" id="volWork" placeholder="e.g. Admin Assistant, Exam Guard Room 301"></div>
+                  <button type="submit" class="btn btn-primary w-full">💾 Save Volunteer</button>
+                </form>
+              </div>
+            </div>
+          `;
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = modalHTML;
+                document.body.appendChild(tempDiv.firstElementChild);
+            }
+
+            async function handleAddVolunteer(event) {
+                event.preventDefault();
+                const data = {
+                    name: document.getElementById('volName').value.trim(),
+                    mobile: document.getElementById('volMobile').value.trim(),
+                    gender: document.getElementById('volGender').value,
+                    address: document.getElementById('volAddress').value.trim(),
+                    workArea: document.getElementById('volWork').value.trim(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                };
+                try {
+                    await db.collection('volunteers').add(data);
+                    showToast('Volunteer added!', 'success');
+                    document.querySelector('.modal-overlay')?.remove();
+                    await loadAdminDashboardStats();
+                    switchAdminTab('volunteers', document.querySelector('.tab-btn'));
+                } catch (e) {
+                    showToast('Error: ' + e.message, 'error');
+                }
+            }
+
+            async function generatePDFReport(type) {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                const students = AppState.allStudents || [];
+                let filtered = [];
+                let title = '';
+
+                switch (type) {
+                    case 'all':
+                        filtered = students;
+                        title = 'All Registered Students';
+                        break;
+                    case 'present':
+                        filtered = students.filter(s => s.present);
+                        title = 'Present Students';
+                        break;
+                    case 'absent':
+                        filtered = students.filter(s => !s.present);
+                        title = 'Absent Students';
+                        break;
+                    case 'completed':
+                        filtered = students.filter(s => s.status === 'Completed');
+                        title = 'Completed Students';
+                        break;
+                    case 'class8':
+                        filtered = students.filter(s => s.class === '8');
+                        title = 'Class 8 Students';
+                        break;
+                    case 'class9':
+                        filtered = students.filter(s => s.class === '9');
+                        title = 'Class 9 Students';
+                        break;
+                    case 'class10':
+                        filtered = students.filter(s => s.class === '10');
+                        title = 'Class 10 Students';
+                        break;
+                }
+
+                doc.setFontSize(16);
+                doc.setTextColor(26, 35, 126);
+                doc.text('RJF Scholarship Examination 2026', 14, 20);
+                doc.setFontSize(12);
+                doc.setTextColor(97, 97, 97);
+                doc.text(`Report: ${title} (${filtered.length} students)`, 14, 30);
+                doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 38);
+
+                const tableData = filtered.map((s, i) => [
+                    i + 1, s.registrationID || s.id, s.name, s.class, s.group, s.examRoomNumber || '-', s
+                    .sitNumber || '-', s.present ? 'Yes' : 'No', s.status || 'Registered'
+                ]);
+
+                doc.autoTable({
+                    startY: 44,
+                    head: [
+                        ['#', 'Reg ID', 'Name', 'Class', 'Group', 'Room', 'Sit', 'Present', 'Status']
+                    ],
+                    body: tableData,
+                    styles: { fontSize: 7, cellPadding: 2 },
+                    headStyles: { fillColor: [26, 35, 126], textColor: 255 },
+                });
+
+                doc.save(`RJFSE26_${type}_report.pdf`);
+                showToast('PDF report downloaded!', 'success');
+            }
+
+            function logoutAdmin() {
+                AppState.adminAuth = null;
+                AppState.stats = null;
+                AppState.allStudents = [];
+                renderApp();
+                showToast('Admin logged out.', '');
+            }
+
+            // ==================== INITIALIZATION ====================
+            function initApp() {
+                if (initialLoader) initialLoader.style.display = 'none';
+                renderLandingPage();
+            }
+
+            // Global function exposures for inline onclick handlers
+            window.navigateTo = navigateTo;
+            window.handleStudentRegistration = handleStudentRegistration;
+            window.handleClassChange = handleClassChange;
+            window.switchSATab = switchSATab;
+            window.searchStudentAssistant = searchStudentAssistant;
+            window.stopSAQRScanner = stopSAQRScanner;
+            window.handleAdminAssistLogin = handleAdminAssistLogin;
+            window.logoutAdminAssist = logoutAdminAssist;
+            window.switchAATab = switchAATab;
+            window.searchAAStudent = searchAAStudent;
+            window.markAAPresent = markAAPresent;
+            window.openAnswerSheetScan = openAnswerSheetScan;
+            window.stopAnswerSheetScanner = stopAnswerSheetScanner;
+            window.confirmAnswerSheet = confirmAnswerSheet;
+            window.loadAAAssignedStudents = loadAAAssignedStudents;
+            window.handleAdminLogin = handleAdminLogin;
+            window.logoutAdmin = logoutAdmin;
+            window.switchAdminTab = switchAdminTab;
+            window.filterStudentTable = filterStudentTable;
+            window.openStudentDetailModal = openStudentDetailModal;
+            window.updateStudentDetail = updateStudentDetail;
+            window.generateAdmitCard = generateAdmitCard;
+            window.openAddAssistantModal = openAddAssistantModal;
+            window.handleAddAssistant = handleAddAssistant;
+            window.openAddVolunteerModal = openAddVolunteerModal;
+            window.handleAddVolunteer = handleAddVolunteer;
+            window.generatePDFReport = generatePDFReport;
+
+            // Start the app
+            document.addEventListener('DOMContentLoaded', initApp);
+            // If DOM already loaded
+            if (document.readyState !== 'loading') {
+                initApp();
+            }
+    </script>
+</body>
+</html>
