@@ -522,14 +522,16 @@
         }
 
         /* QR Scanner */
-        #qr-reader {
+        #qr-reader,
+        [id^="qr-reader"] {
             border-radius: var(--radius-sm);
             overflow: hidden;
             border: 2px solid var(--border);
             max-width: 400px;
             margin: 0 auto;
         }
-        #qr-reader__dashboard_section_csr button {
+        #qr-reader__dashboard_section_csr button,
+        [id^="qr-reader"] button {
             padding: 8px 16px;
             border-radius: 20px;
             border: none;
@@ -651,6 +653,45 @@
             }
         }
 
+        /* Anonymous result area */
+        .anonymous-badge {
+            background: #1a237e;
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        .anonymous-warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff6d00;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: #e65100;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: #fff;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .card {
+                box-shadow: none;
+                border: 2px solid #000;
+            }
+        }
+
         /* Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
@@ -689,20 +730,6 @@
         }
         .w-full {
             width: 100%;
-        }
-
-        /* Print styles */
-        @media print {
-            body {
-                background: #fff;
-            }
-            .no-print {
-                display: none !important;
-            }
-            .card {
-                box-shadow: none;
-                border: 2px solid #000;
-            }
         }
 
         /* Skeleton loading */
@@ -756,7 +783,7 @@
 
         // ==================== GLOBAL STATE ====================
         const AppState = {
-            currentPortal: null, // 'student-reg', 'student-assist', 'admin-assist', 'admin'
+            currentPortal: null,
             adminAuth: null,
             adminAssistAuth: null,
             currentUser: null,
@@ -765,6 +792,12 @@
             allAssistants: [],
             allVolunteers: [],
             stats: null,
+            // For anonymous result upload
+            resultUploadSession: {
+                scannedAnswerSheetId: null,
+                scannedStudentId: null,
+                studentData: null,
+            }
         };
 
         // ==================== UTILITY FUNCTIONS ====================
@@ -818,12 +851,10 @@
 
         function renderApp() {
             const portal = AppState.currentPortal;
-
             if (!portal) {
                 renderLandingPage();
                 return;
             }
-
             switch (portal) {
                 case 'student-reg':
                     renderStudentRegistration();
@@ -881,7 +912,7 @@
               <div class="card" style="cursor:pointer;text-align:center;border-left:4px solid #c62828;" onclick="navigateTo('admin')">
                 <div style="font-size:3rem;margin-bottom:10px;">⚙️</div>
                 <div class="card-header" style="justify-content:center;">Admin Portal</div>
-                <p style="color:var(--text-light);font-size:0.85rem;">Full control: manage students, assistants, volunteers & reports</p>
+                <p style="color:var(--text-light);font-size:0.85rem;">Full control: manage students, assistants, volunteers & results</p>
                 <button class="btn btn-danger mt-2">Admin Login</button>
               </div>
             </div>
@@ -901,81 +932,36 @@
         function renderStudentRegistration() {
             root.innerHTML = `
             <div class="app-header no-print">
-              <div class="header-logo">
-                <div class="logo-icon">RJF</div>
-                <div>
-                  <div class="header-title">Student Registration</div>
-                  <div class="header-subtitle">RJFSE 2026</div>
-                </div>
-              </div>
-              <div class="header-actions">
-                <button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button>
-              </div>
+              <div class="header-logo"><div class="logo-icon">RJF</div><div><div class="header-title">Student Registration</div><div class="header-subtitle">RJFSE 2026</div></div></div>
+              <div class="header-actions"><button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button></div>
             </div>
             <div class="card" style="max-width:650px;margin:0 auto;">
               <div class="card-header">📝 Registration Form</div>
               <form id="studentRegForm" onsubmit="handleStudentRegistration(event)">
                 <div class="form-row">
-                  <div class="form-group"><label>Full Name *</label><input type="text" id="regName" required placeholder="Enter full name"></div>
-                  <div class="form-group"><label>Father's Name *</label><input type="text" id="regFather" required placeholder="Father's name"></div>
+                  <div class="form-group"><label>Full Name *</label><input type="text" id="regName" required></div>
+                  <div class="form-group"><label>Father's Name *</label><input type="text" id="regFather" required></div>
                 </div>
                 <div class="form-row">
-                  <div class="form-group"><label>Mother's Name *</label><input type="text" id="regMother" required placeholder="Mother's name"></div>
-                  <div class="form-group"><label>Class Roll *</label><input type="text" id="regRoll" required placeholder="Class roll number"></div>
+                  <div class="form-group"><label>Mother's Name *</label><input type="text" id="regMother" required></div>
+                  <div class="form-group"><label>Class Roll *</label><input type="text" id="regRoll" required></div>
                 </div>
                 <div class="form-row">
-                  <div class="form-group">
-                    <label>Class *</label>
-                    <select id="regClass" required onchange="handleClassChange()">
-                      <option value="">Select Class</option>
-                      <option value="8">Class 8</option>
-                      <option value="9">Class 9</option>
-                      <option value="10">Class 10</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label>Group *</label>
-                    <select id="regGroup" required>
-                      <option value="">Select Group</option>
-                      <option value="Junior">Junior</option>
-                      <option value="Science">Science</option>
-                      <option value="Arts">Arts</option>
-                      <option value="Commerce">Commerce</option>
-                      <option value="Vocational">Vocational</option>
-                    </select>
-                  </div>
+                  <div class="form-group"><label>Class *</label><select id="regClass" required onchange="handleClassChange()"><option value="">Select</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
+                  <div class="form-group"><label>Group *</label><select id="regGroup" required><option value="">Select</option></select></div>
                 </div>
                 <div class="form-row">
-                  <div class="form-group">
-                    <label>Gender *</label>
-                    <select id="regGender" required>
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div class="form-group"><label>Mobile Number *</label><input type="tel" id="regMobile" required placeholder="01XXXXXXXXX" pattern="01[0-9]{9}" title="Enter valid 11-digit mobile number starting with 01"></div>
+                  <div class="form-group"><label>Gender *</label><select id="regGender" required><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+                  <div class="form-group"><label>Mobile *</label><input type="tel" id="regMobile" required pattern="01[0-9]{9}"></div>
                 </div>
-                <div class="form-group">
-                  <label>Student Picture (Optional)</label>
-                  <input type="file" id="regPicture" accept="image/*" style="padding:8px;">
-                  <small style="color:var(--text-light);">Upload a clear passport-size photo</small>
-                </div>
-                <div id="regPreview" style="text-align:center;margin:10px 0;"></div>
-                <button type="submit" class="btn btn-primary w-full mt-2" id="regSubmitBtn">📋 Register Now</button>
+                <div class="form-group"><label>Picture (Optional)</label><input type="file" id="regPicture" accept="image/*"></div>
+                <div id="regPreview" style="text-align:center;"></div>
+                <button type="submit" class="btn btn-primary w-full mt-2">📋 Register Now</button>
               </form>
               <div id="regResult" style="margin-top:16px;"></div>
             </div>
-            <div style="text-align:center;padding:12px;">
-              <button class="btn btn-ghost btn-sm" onclick="navigateTo(null)">← Back to Home</button>
-            </div>
           `;
-
-            // Initialize group dropdown
             handleClassChange();
-
-            // Picture preview
             const picInput = document.getElementById('regPicture');
             if (picInput) {
                 picInput.addEventListener('change', function() {
@@ -983,14 +969,10 @@
                     const file = this.files[0];
                     if (file) {
                         const reader = new FileReader();
-                        reader.onload = (e) => {
-                            preview.innerHTML =
-                                `<img src="${e.target.result}" style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);">`;
-                        };
+                        reader.onload = (e) => { preview.innerHTML =
+                                `<img src="${e.target.result}" style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);">`; };
                         reader.readAsDataURL(file);
-                    } else {
-                        preview.innerHTML = '';
-                    }
+                    } else preview.innerHTML = '';
                 });
             }
         }
@@ -999,34 +981,27 @@
             const classSelect = document.getElementById('regClass');
             const groupSelect = document.getElementById('regGroup');
             if (!classSelect || !groupSelect) return;
-
-            const selectedClass = classSelect.value;
+            const cls = classSelect.value;
             groupSelect.innerHTML = '<option value="">Select Group</option>';
-
-            if (selectedClass === '8') {
+            if (cls === '8') {
                 groupSelect.innerHTML = '<option value="Junior" selected>Junior</option>';
                 groupSelect.disabled = true;
-            } else if (selectedClass === '9' || selectedClass === '10') {
-                const groups = ['Science', 'Arts', 'Commerce', 'Vocational'];
-                groups.forEach(g => {
-                    groupSelect.innerHTML += `<option value="${g}">${g}</option>`;
-                });
+            } else if (cls === '9' || cls === '10') {
+                ['Science', 'Arts', 'Commerce', 'Vocational'].forEach(g => groupSelect.innerHTML +=
+                    `<option value="${g}">${g}</option>`);
                 groupSelect.disabled = false;
             } else {
+                ['Junior', 'Science', 'Arts', 'Commerce', 'Vocational'].forEach(g => groupSelect.innerHTML +=
+                    `<option value="${g}">${g}</option>`);
                 groupSelect.disabled = false;
-                const allGroups = ['Junior', 'Science', 'Arts', 'Commerce', 'Vocational'];
-                allGroups.forEach(g => {
-                    groupSelect.innerHTML += `<option value="${g}">${g}</option>`;
-                });
             }
         }
 
         async function handleStudentRegistration(event) {
             event.preventDefault();
-            const submitBtn = document.getElementById('regSubmitBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = '⏳ Registering...';
-
+            const submitBtn = document.getElementById('regSubmitBtn') || event.target.querySelector('button[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true;
+                submitBtn.textContent = '⏳ Registering...'; }
             const regID = generateRegID();
             const studentData = {
                 registrationID: regID,
@@ -1045,115 +1020,61 @@
                 answerSheetNumber: '',
                 checkedIn: false,
                 present: false,
+                result: null,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             };
-
             try {
-                // Check for duplicate mobile
-                const existingQuery = await db.collection('students')
-                    .where('mobile', '==', studentData.mobile)
-                    .get();
-                if (!existingQuery.empty) {
-                    throw new Error('A student with this mobile number is already registered.');
-                }
-
-                // Handle picture upload
+                const existingQuery = await db.collection('students').where('mobile', '==', studentData.mobile).get();
+                if (!existingQuery.empty) throw new Error('Mobile number already registered.');
                 const picFile = document.getElementById('regPicture').files[0];
                 if (picFile) {
                     const picRef = storage.ref(`student_pictures/${regID}_${picFile.name}`);
-                    const uploadSnapshot = await picRef.put(picFile);
-                    studentData.pictureURL = await uploadSnapshot.ref.getDownloadURL();
-                } else {
-                    studentData.pictureURL = '';
-                }
-
-                // Save to Firestore
+                    await picRef.put(picFile);
+                    studentData.pictureURL = await picRef.getDownloadURL();
+                } else studentData.pictureURL = '';
                 await db.collection('students').doc(regID).set(studentData);
-
-                // Also save to Realtime DB for quick lookup
-                await rtdb.ref('students/' + regID).set({
-                    ...studentData,
-                    createdAt: Date.now(),
-                });
-
+                await rtdb.ref('students/' + regID).set({ ...studentData, createdAt: Date.now() });
                 const resultDiv = document.getElementById('regResult');
                 resultDiv.innerHTML = `
               <div style="background:#e8f5e9;padding:20px;border-radius:12px;text-align:center;animation:fadeInUp 0.5s ease;">
-                <div style="font-size:3rem;">✅</div>
-                <h3 style="color:#2e7d32;">Registration Successful!</h3>
-                <p style="font-size:1.2rem;font-weight:700;color:var(--primary);">Your Registration ID:</p>
-                <p style="font-size:2rem;font-weight:900;color:var(--accent);letter-spacing:2px;">${regID}</p>
-                <p style="color:var(--text-light);">Please save this ID for future reference.</p>
-                <p style="color:var(--text-light);">Class: ${studentData.class} | Group: ${studentData.group}</p>
-                <button class="btn btn-primary mt-2" onclick="window.print()">🖨️ Print Confirmation</button>
-              </div>
-            `;
+                <div style="font-size:3rem;">✅</div><h3 style="color:#2e7d32;">Registration Successful!</h3>
+                <p style="font-size:1.2rem;font-weight:700;">Your ID:</p><p style="font-size:2rem;font-weight:900;color:var(--accent);">${regID}</p>
+                <button class="btn btn-primary mt-2" onclick="window.print()">🖨️ Print</button>
+              </div>`;
                 document.getElementById('studentRegForm').reset();
                 document.getElementById('regPreview').innerHTML = '';
                 handleClassChange();
-                showToast('Registration successful! ID: ' + regID, 'success');
-            } catch (error) {
-                showToast('Error: ' + error.message, 'error');
-                alert('Registration failed: ' + error.message);
+                showToast('Registered! ID: ' + regID, 'success');
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+                alert('Registration failed: ' + e.message);
             } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = '📋 Register Now';
+                if (submitBtn) { submitBtn.disabled = false;
+                    submitBtn.textContent = '📋 Register Now'; }
             }
         }
 
         // ==================== STUDENT ASSISTANT PORTAL ====================
         function renderStudentAssistant() {
             root.innerHTML = `
-            <div class="app-header no-print">
-              <div class="header-logo">
-                <div class="logo-icon">RJF</div>
-                <div>
-                  <div class="header-title">Student Assistant Portal</div>
-                  <div class="header-subtitle">Check Your Status</div>
-                </div>
-              </div>
-              <div class="header-actions">
-                <button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button>
-              </div>
-            </div>
+            <div class="app-header no-print"><div class="header-logo"><div class="logo-icon">RJF</div><div><div class="header-title">Student Assistant</div><div class="header-subtitle">Check Status</div></div></div><div class="header-actions"><button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button></div></div>
             <div class="card" style="max-width:600px;margin:0 auto;">
-              <div class="card-header">🔍 Find Your Registration</div>
-              <div class="tabs">
-                <button class="tab-btn active" onclick="switchSATab('manual', this)">🔢 Enter ID/Mobile</button>
-                <button class="tab-btn" onclick="switchSATab('qr', this)">📷 Scan QR Code</button>
-              </div>
-              <div id="saManualSearch">
-                <div class="form-group"><label>Enter Registration ID or Mobile Number</label>
-                  <input type="text" id="saSearchInput" placeholder="RJFSE26-XXXXXX or 01XXXXXXXXX">
-                </div>
-                <button class="btn btn-primary w-full" onclick="searchStudentAssistant()">🔍 Search</button>
-              </div>
-              <div id="saQRSearch" style="display:none;">
-                <div id="saQRReader" style="max-width:350px;margin:0 auto;"></div>
-                <p class="text-center mt-2" style="color:var(--text-light);font-size:0.8rem;">Point camera at student's QR code</p>
-                <button class="btn btn-ghost btn-sm w-full mt-2" id="saStopQR" style="display:none;" onclick="stopSAQRScanner()">⏹️ Stop Scanner</button>
-              </div>
+              <div class="card-header">🔍 Find Registration</div>
+              <div class="tabs"><button class="tab-btn active" onclick="switchSATab('manual',this)">🔢 ID/Mobile</button><button class="tab-btn" onclick="switchSATab('qr',this)">📷 QR Scan</button></div>
+              <div id="saManualSearch"><div class="form-group"><label>Registration ID or Mobile</label><input type="text" id="saSearchInput"></div><button class="btn btn-primary w-full" onclick="searchStudentAssistant()">🔍 Search</button></div>
+              <div id="saQRSearch" style="display:none;"><div id="saQRReader"></div><button class="btn btn-ghost btn-sm w-full mt-2" id="saStopQR" style="display:none;" onclick="stopSAQRScanner()">⏹️ Stop</button></div>
               <div id="saResult" style="margin-top:16px;"></div>
             </div>
-            <div style="text-align:center;padding:12px;">
-              <button class="btn btn-ghost btn-sm" onclick="navigateTo(null)">← Back to Home</button>
-            </div>
           `;
-
-            // Auto-init QR scanner tab
             window._saQRScanner = null;
         }
 
         function switchSATab(tab, btn) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#root .tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             document.getElementById('saManualSearch').style.display = tab === 'manual' ? 'block' : 'none';
             document.getElementById('saQRSearch').style.display = tab === 'qr' ? 'block' : 'none';
-            if (tab === 'qr') {
-                initSAQRScanner();
-            } else {
-                stopSAQRScanner();
-            }
+            tab === 'qr' ? initSAQRScanner() : stopSAQRScanner();
         }
 
         function initSAQRScanner() {
@@ -1163,401 +1084,215 @@
             const scanner = new Html5Qrcode('saQRReader');
             window._saQRScanner = scanner;
             document.getElementById('saStopQR').style.display = 'block';
-
             scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 220, height: 220 } },
-                (decodedText) => {
-                    // QR scanned
-                    document.getElementById('saSearchInput').value = decodedText;
+                (text) => { document.getElementById('saSearchInput').value = text;
                     stopSAQRScanner();
-                    searchStudentAssistant();
-                },
-                (error) => { /* ignore */ }
-            ).catch(err => {
-                console.log('QR scanner error:', err);
-                showToast('Camera access denied. Please use manual search.', 'error');
-                document.getElementById('saStopQR').style.display = 'none';
-            });
+                    searchStudentAssistant(); }, () => {}
+            ).catch(() => { showToast('Camera access denied', 'error');
+                document.getElementById('saStopQR').style.display = 'none'; });
         }
 
         function stopSAQRScanner() {
-            if (window._saQRScanner) {
-                window._saQRScanner.stop().catch(() => {});
-                window._saQRScanner = null;
-            }
-            const stopBtn = document.getElementById('saStopQR');
-            if (stopBtn) stopBtn.style.display = 'none';
-            const readerEl = document.getElementById('saQRReader');
-            if (readerEl) readerEl.innerHTML = '<p class="text-center" style="color:var(--text-light);">Scanner stopped.</p>';
+            if (window._saQRScanner) { window._saQRScanner.stop().catch(() => {}); window._saQRScanner = null; }
+            const btn = document.getElementById('saStopQR');
+            if (btn) btn.style.display = 'none';
         }
 
         async function searchStudentAssistant() {
             const input = document.getElementById('saSearchInput').value.trim();
             const resultDiv = document.getElementById('saResult');
-            if (!input) {
-                resultDiv.innerHTML =
-                    '<p style="color:var(--danger);text-align:center;">Please enter a Registration ID or Mobile Number.</p>';
-                return;
-            }
-
+            if (!input) { resultDiv.innerHTML =
+                    '<p style="color:var(--danger);text-align:center;">Enter ID or Mobile.</p>'; return; }
             resultDiv.innerHTML = '<div class="spinner"></div>';
-
             try {
                 let docSnap;
-                // Try as registration ID first
-                if (input.startsWith('RJFSE26-')) {
-                    docSnap = await db.collection('students').doc(input).get();
-                } else {
-                    // Search by mobile
-                    const querySnap = await db.collection('students').where('mobile', '==', input).limit(1).get();
-                    if (!querySnap.empty) {
-                        docSnap = querySnap.docs[0];
-                    } else {
-                        // Try RTDB
-                        const rtdbSnap = await rtdb.ref('students').orderByChild('mobile').equalTo(input).once('value');
-                        if (rtdbSnap.exists()) {
-                            const data = Object.values(rtdbSnap.val())[0];
-                            docSnap = { exists: true, data: () => data, id: data.registrationID };
-                        }
-                    }
+                if (input.startsWith('RJFSE26-')) docSnap = await db.collection('students').doc(input).get();
+                else {
+                    const q = await db.collection('students').where('mobile', '==', input).limit(1).get();
+                    docSnap = q.empty ? null : q.docs[0];
                 }
-
-                if (!docSnap || !docSnap.exists) {
-                    resultDiv.innerHTML =
-                        '<p style="color:var(--danger);text-align:center;">❌ No student found with this information.</p>';
-                    return;
-                }
-
-                const student = docSnap.data();
-                const regID = docSnap.id || student.registrationID;
-                const statusColor = student.present ? 'badge-success' : student.checkedIn ? 'badge-info' :
-                    'badge-warning';
-                const statusText = student.present ? 'Present' : student.checkedIn ? 'Checked In' : 'Registered';
-
+                if (!docSnap || !docSnap.exists) { resultDiv.innerHTML =
+                        '<p style="color:var(--danger);text-align:center;">❌ Not found.</p>'; return; }
+                const s = docSnap.data();
+                const rid = docSnap.id;
                 resultDiv.innerHTML = `
-              <div style="background:#f8f9ff;padding:20px;border-radius:12px;animation:fadeInUp 0.5s ease;">
-                <h3 style="color:var(--primary);text-align:center;">📋 Student Details</h3>
-                <table style="width:100%;margin-top:12px;">
-                  <tr><td style="font-weight:700;color:var(--text-light);">Registration ID</td><td><strong>${regID}</strong></td></tr>
-                  <tr><td style="font-weight:700;color:var(--text-light);">Name</td><td>${escapeHTML(student.name)}</td></tr>
-                  <tr><td style="font-weight:700;color:var(--text-light);">Father's Name</td><td>${escapeHTML(student.fatherName)}</td></tr>
-                  <tr><td style="font-weight:700;color:var(--text-light);">Mother's Name</td><td>${escapeHTML(student.motherName)}</td></tr>
-                  <tr><td style="font-weight:700;color:var(--text-light);">Class</td><td>${student.class}</td></tr>
-                  <tr><td style="font-weight:700;color:var(--text-light);">Group</td><td>${student.group}</td></tr>
-                  <tr><td style="font-weight:700;color:var(--text-light);">Class Roll</td><td>${student.classRoll}</td></tr>
-                  <tr><td style="font-weight:700;color:var(--text-light);">Gender</td><td>${student.gender}</td></tr>
-                  <tr><td style="font-weight:700;color:var(--text-light);">Mobile</td><td>${student.mobile}</td></tr>
-                  <tr><td style="font-weight:700;color:var(--text-light);">Status</td><td><span class="badge ${statusColor}">${statusText}</span></td></tr>
-                  <tr style="background:#fff9c4;"><td style="font-weight:700;color:var(--primary);">📌 Exam Room</td><td><strong style="font-size:1.3rem;color:var(--accent);">${student.examRoomNumber || 'Not Assigned Yet'}</strong></td></tr>
-                  <tr style="background:#fff9c4;"><td style="font-weight:700;color:var(--primary);">💺 Sit Number</td><td><strong style="font-size:1.3rem;color:var(--accent);">${student.sitNumber || 'Not Assigned Yet'}</strong></td></tr>
-                </table>
-                ${student.pictureURL ? `<div style="text-align:center;margin-top:12px;"><img src="${student.pictureURL}" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);"></div>` : ''}
-                ${student.examRoomNumber ? `<div style="text-align:center;margin-top:12px;"><button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Print Details</button></div>` : '<p style="text-align:center;color:var(--warning);">⚠️ Exam room & seat not yet assigned. Please check back later.</p>'}
-              </div>
-            `;
-            } catch (error) {
-                resultDiv.innerHTML = `<p style="color:var(--danger);text-align:center;">Error: ${error.message}</p>`;
-            }
+              <div style="background:#f8f9ff;padding:20px;border-radius:12px;">
+                <h3 style="color:var(--primary);text-align:center;">📋 Details</h3>
+                <table style="width:100%;"><tr><td><strong>ID</strong></td><td>${rid}</td></tr><tr><td><strong>Name</strong></td><td>${escapeHTML(s.name)}</td></tr><tr><td><strong>Class</strong></td><td>${s.class}</td></tr><tr><td><strong>Group</strong></td><td>${s.group}</td></tr><tr><td><strong>Room</strong></td><td><strong>${s.examRoomNumber||'N/A'}</strong></td></tr><tr><td><strong>Sit</strong></td><td><strong>${s.sitNumber||'N/A'}</strong></td></tr></table>
+                ${s.pictureURL?`<div style="text-align:center;"><img src="${s.pictureURL}" style="width:80px;height:80px;border-radius:50%;"></div>`:''}
+              </div>`;
+            } catch (e) { resultDiv.innerHTML = `<p style="color:var(--danger);">Error: ${e.message}</p>`; }
         }
 
         // ==================== ADMIN ASSISTANT PORTAL ====================
         function renderAdminAssistant() {
-            if (!AppState.adminAssistAuth) {
-                renderAdminAssistantLogin();
-                return;
-            }
+            if (!AppState.adminAssistAuth) { renderAdminAssistantLogin(); return; }
             renderAdminAssistantDashboard();
         }
 
         function renderAdminAssistantLogin() {
             root.innerHTML = `
-            <div class="app-header no-print">
-              <div class="header-logo">
-                <div class="logo-icon">RJF</div>
-                <div>
-                  <div class="header-title">Admin Assistant Portal</div>
-                  <div class="header-subtitle">Secure Login</div>
-                </div>
-              </div>
-              <div class="header-actions">
-                <button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button>
-              </div>
-            </div>
+            <div class="app-header no-print"><div class="header-logo"><div class="logo-icon">RJF</div><div><div class="header-title">Admin Assistant</div><div class="header-subtitle">Login</div></div></div><div class="header-actions"><button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button></div></div>
             <div class="card" style="max-width:420px;margin:40px auto;">
-              <div class="card-header">🔐 Admin Assistant Login</div>
-              <form onsubmit="handleAdminAssistLogin(event)">
-                <div class="form-group"><label>Email Address</label>
-                  <input type="email" id="aaEmail" value="Admin-assistant@rjfse26.com" required>
-                </div>
-                <div class="form-group"><label>Password</label>
-                  <input type="password" id="aaPassword" value="Admin-ass442" required>
-                </div>
-                <button type="submit" class="btn btn-warning w-full">🔓 Login</button>
-              </form>
-              <div id="aaLoginError" style="margin-top:10px;text-align:center;"></div>
-            </div>
-          `;
+              <div class="card-header">🔐 Login</div>
+              <form onsubmit="handleAdminAssistLogin(event)"><div class="form-group"><label>Email</label><input type="email" id="aaEmail" value="Admin-assistant@rjfse26.com" required></div><div class="form-group"><label>Password</label><input type="password" id="aaPassword" value="Admin-ass442" required></div><button type="submit" class="btn btn-warning w-full">🔓 Login</button></form>
+              <div id="aaLoginError" style="margin-top:10px;"></div>
+            </div>`;
         }
 
         function handleAdminAssistLogin(event) {
             event.preventDefault();
             const email = document.getElementById('aaEmail').value.trim();
             const password = document.getElementById('aaPassword').value.trim();
-            const errorDiv = document.getElementById('aaLoginError');
-
             if (email === 'Admin-assistant@rjfse26.com' && password === 'Admin-ass442') {
-                AppState.adminAssistAuth = { email, name: 'Admin Assistant', loggedInAt: new Date() };
+                AppState.adminAssistAuth = { email, name: 'Admin Assistant' };
                 showToast('Login successful!', 'success');
                 renderAdminAssistantDashboard();
             } else {
-                errorDiv.innerHTML = '<p style="color:var(--danger);">❌ Invalid email or password.</p>';
+                document.getElementById('aaLoginError').innerHTML =
+                    '<p style="color:var(--danger);">❌ Invalid credentials.</p>';
                 showToast('Login failed!', 'error');
             }
         }
 
         async function renderAdminAssistantDashboard() {
             root.innerHTML = `
-            <div class="app-header no-print">
-              <div class="header-logo">
-                <div class="logo-icon">RJF</div>
-                <div>
-                  <div class="header-title">Admin Assistant Dashboard</div>
-                  <div class="header-subtitle">Answer Sheet Management</div>
-                </div>
-              </div>
-              <div class="header-actions">
-                <button class="btn btn-outline btn-sm" onclick="logoutAdminAssist()">🚪 Logout</button>
-                <button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button>
-              </div>
+            <div class="app-header no-print"><div class="header-logo"><div class="logo-icon">RJF</div><div><div class="header-title">Admin Assistant Dashboard</div></div></div><div class="header-actions"><button class="btn btn-outline btn-sm" onclick="logoutAdminAssist()">🚪 Logout</button><button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button></div></div>
+            <div class="card mb-3"><div class="card-header">🔍 Scan Student</div><div class="tabs"><button class="tab-btn active" onclick="switchAATab('manual',this)">🔢 Manual</button><button class="tab-btn" onclick="switchAATab('qr',this)">📷 QR</button></div>
+              <div id="aaManualSearch"><div class="form-group"><label>ID/Mobile</label><input type="text" id="aaSearchInput"></div><button class="btn btn-warning w-full" onclick="searchAAStudent()">🔍 Find</button></div>
+              <div id="aaQRSearch" style="display:none;"><div id="aaQRReader"></div><button class="btn btn-ghost btn-sm w-full mt-2" id="aaStopQR" style="display:none;" onclick="stopAAQRScanner()">⏹️ Stop</button></div>
             </div>
-            <div class="card mb-3">
-              <div class="card-header">🔍 Scan Student QR Code</div>
-              <div class="tabs">
-                <button class="tab-btn active" onclick="switchAATab('manual', this)">🔢 Manual Entry</button>
-                <button class="tab-btn" onclick="switchAATab('qr', this)">📷 QR Scanner</button>
-              </div>
-              <div id="aaManualSearch">
-                <div class="form-group"><label>Registration ID or Mobile</label>
-                  <input type="text" id="aaSearchInput" placeholder="RJFSE26-XXXXXX">
-                </div>
-                <button class="btn btn-warning w-full" onclick="searchAAStudent()">🔍 Find Student</button>
-              </div>
-              <div id="aaQRSearch" style="display:none;">
-                <div id="aaQRReader" style="max-width:350px;margin:0 auto;"></div>
-                <button class="btn btn-ghost btn-sm w-full mt-2" id="aaStopQR" style="display:none;" onclick="stopAAQRScanner()">⏹️ Stop</button>
-              </div>
-            </div>
-            <div id="aaStudentDetail" style="margin-bottom:16px;"></div>
-            <div class="card">
-              <div class="card-header">📋 My Assigned Students</div>
-              <div id="aaAssignedList"><div class="spinner"></div></div>
-            </div>
-          `;
-
+            <div id="aaStudentDetail"></div>
+            <div class="card"><div class="card-header">📋 Assigned Students</div><div id="aaAssignedList"><div class="spinner"></div></div></div>`;
             window._aaQRScanner = null;
             loadAAAssignedStudents();
         }
 
         function switchAATab(tab, btn) {
-            const manualEl = document.getElementById('aaManualSearch');
-            const qrEl = document.getElementById('aaQRSearch');
-            if (!manualEl || !qrEl) return;
+            const m = document.getElementById('aaManualSearch'),
+                q = document.getElementById('aaQRSearch');
+            if (!m || !q) return;
             document.querySelectorAll('#root .tab-btn').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
-            manualEl.style.display = tab === 'manual' ? 'block' : 'none';
-            qrEl.style.display = tab === 'qr' ? 'block' : 'none';
-            if (tab === 'qr') initAAQRScanner();
-            else stopAAQRScanner();
+            m.style.display = tab === 'manual' ? 'block' : 'none';
+            q.style.display = tab === 'qr' ? 'block' : 'none';
+            tab === 'qr' ? initAAQRScanner() : stopAAQRScanner();
         }
 
         function initAAQRScanner() {
-            const readerEl = document.getElementById('aaQRReader');
-            if (!readerEl || window._aaQRScanner) return;
-            readerEl.innerHTML = '';
+            const el = document.getElementById('aaQRReader');
+            if (!el || window._aaQRScanner) return;
+            el.innerHTML = '';
             const scanner = new Html5Qrcode('aaQRReader');
             window._aaQRScanner = scanner;
             document.getElementById('aaStopQR').style.display = 'block';
             scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 220, height: 220 } },
-                (decodedText) => {
-                    document.getElementById('aaSearchInput').value = decodedText;
+                (text) => { document.getElementById('aaSearchInput').value = text;
                     stopAAQRScanner();
-                    searchAAStudent();
-                },
-                () => {}
-            ).catch(() => {
-                showToast('Camera access denied', 'error');
-                document.getElementById('aaStopQR').style.display = 'none';
-            });
+                    searchAAStudent(); }, () => {}
+            ).catch(() => { showToast('Camera error', 'error');
+                document.getElementById('aaStopQR').style.display = 'none'; });
         }
 
         function stopAAQRScanner() {
-            if (window._aaQRScanner) {
-                window._aaQRScanner.stop().catch(() => {});
-                window._aaQRScanner = null;
-            }
-            const stopBtn = document.getElementById('aaStopQR');
-            if (stopBtn) stopBtn.style.display = 'none';
+            if (window._aaQRScanner) { window._aaQRScanner.stop().catch(() => {}); window._aaQRScanner = null; }
+            const btn = document.getElementById('aaStopQR');
+            if (btn) btn.style.display = 'none';
         }
 
         async function searchAAStudent() {
             const input = document.getElementById('aaSearchInput').value.trim();
-            const detailDiv = document.getElementById('aaStudentDetail');
-            if (!input) {
-                detailDiv.innerHTML = '<p style="color:var(--danger);">Please enter a Registration ID.</p>';
-                return;
-            }
-            detailDiv.innerHTML = '<div class="spinner"></div>';
-
+            const div = document.getElementById('aaStudentDetail');
+            if (!input) { div.innerHTML = '<p style="color:var(--danger);">Enter ID.</p>'; return; }
+            div.innerHTML = '<div class="spinner"></div>';
             try {
                 let docSnap;
-                if (input.startsWith('RJFSE26-')) {
-                    docSnap = await db.collection('students').doc(input).get();
-                } else {
-                    const qSnap = await db.collection('students').where('mobile', '==', input).limit(1).get();
-                    docSnap = qSnap.empty ? null : qSnap.docs[0];
-                }
-                if (!docSnap || !docSnap.exists) {
-                    detailDiv.innerHTML = '<p style="color:var(--danger);">❌ Student not found.</p>';
-                    return;
-                }
+                if (input.startsWith('RJFSE26-')) docSnap = await db.collection('students').doc(input).get();
+                else { const q = await db.collection('students').where('mobile', '==', input).limit(1).get();
+                    docSnap = q.empty ? null : q.docs[0]; }
+                if (!docSnap || !docSnap.exists) { div.innerHTML =
+                        '<p style="color:var(--danger);">❌ Not found.</p>'; return; }
                 const s = docSnap.data();
                 const rid = docSnap.id;
-                detailDiv.innerHTML = `
-              <div class="card card-accent" style="border-left-color:#f9a825;">
-                <h4>Student: ${escapeHTML(s.name)} | ID: ${rid}</h4>
-                <p>Class: ${s.class} | Group: ${s.group} | Room: ${s.examRoomNumber || 'N/A'} | Sit: ${s.sitNumber || 'N/A'}</p>
-                <p>Status: <span class="badge ${s.present ? 'badge-success' : 'badge-warning'}">${s.present ? 'Present' : 'Not Present'}</span>
-                   | Answer Sheet: <span class="badge ${s.answerSheetAttached ? 'badge-success' : 'badge-danger'}">${s.answerSheetAttached ? 'Attached' : 'Not Attached'}</span></p>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                  <button class="btn btn-success btn-sm" onclick="markAAPresent('${rid}')">✅ Mark Present</button>
-                  <button class="btn btn-info btn-sm" onclick="openAnswerSheetScan('${rid}')">📎 Attach Answer Sheet</button>
-                </div>
-                <div id="aaAnswerSheetSection_${rid}" style="margin-top:10px;"></div>
-              </div>
-            `;
-            } catch (e) {
-                detailDiv.innerHTML = `<p style="color:var(--danger);">Error: ${e.message}</p>`;
-            }
+                div.innerHTML = `
+              <div class="card card-accent" style="border-left-color:#f9a825;"><h4>${escapeHTML(s.name)} | ${rid}</h4><p>Class: ${s.class} | Room: ${s.examRoomNumber||'N/A'} | Sit: ${s.sitNumber||'N/A'}</p>
+                <p>Status: <span class="badge ${s.present?'badge-success':'badge-warning'}">${s.present?'Present':'Not Present'}</span> | Sheet: <span class="badge ${s.answerSheetAttached?'badge-success':'badge-danger'}">${s.answerSheetAttached?'Attached':'Not Attached'}</span></p>
+                <button class="btn btn-success btn-sm" onclick="markAAPresent('${rid}')">✅ Mark Present</button>
+                <button class="btn btn-info btn-sm" onclick="openAnswerSheetScan('${rid}')">📎 Attach Sheet</button>
+                <div id="aaAnswerSheetSection_${rid}" style="margin-top:10px;"></div></div>`;
+            } catch (e) { div.innerHTML = `<p style="color:var(--danger);">Error: ${e.message}</p>`; }
         }
 
         async function markAAPresent(regID) {
-            try {
-                await db.collection('students').doc(regID).update({ present: true, checkedIn: true,
-                    status: 'Present' });
-                await rtdb.ref('students/' + regID).update({ present: true, checkedIn: true, status: 'Present' });
-                showToast('Student marked as Present!', 'success');
-                searchAAStudent();
-                loadAAAssignedStudents();
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
+            await db.collection('students').doc(regID).update({ present: true, checkedIn: true, status: 'Present' });
+            await rtdb.ref('students/' + regID).update({ present: true, checkedIn: true, status: 'Present' });
+            showToast('Marked Present!', 'success');
+            searchAAStudent();
+            loadAAAssignedStudents();
         }
 
         function openAnswerSheetScan(regID) {
-            const section = document.getElementById('aaAnswerSheetSection_' + regID);
-            if (!section) return;
-            section.innerHTML = `
-            <div style="border:2px dashed #f9a825;padding:12px;border-radius:10px;margin-top:8px;">
-              <p><strong>📎 Scan Answer Sheet QR Code</strong></p>
+            const sec = document.getElementById('aaAnswerSheetSection_' + regID);
+            if (!sec) return;
+            sec.innerHTML = `
+            <div style="border:2px dashed #f9a825;padding:12px;border-radius:10px;"><p><strong>📎 Scan Answer Sheet QR</strong></p>
               <div id="answerSheetQR_${regID}" style="max-width:300px;"></div>
               <button class="btn btn-ghost btn-sm mt-2" id="stopAnswerQR_${regID}" style="display:none;" onclick="stopAnswerSheetScanner('${regID}')">⏹️ Stop</button>
-              <div id="answerSheetResult_${regID}" style="margin-top:8px;"></div>
-            </div>
-          `;
+              <div id="answerSheetResult_${regID}" style="margin-top:8px;"></div></div>`;
             initAnswerSheetScanner(regID);
         }
 
         function initAnswerSheetScanner(regID) {
-            const readerEl = document.getElementById('answerSheetQR_' + regID);
-            if (!readerEl) return;
-            readerEl.innerHTML = '';
+            const el = document.getElementById('answerSheetQR_' + regID);
+            if (!el) return;
+            el.innerHTML = '';
             const scanner = new Html5Qrcode('answerSheetQR_' + regID);
             window['_ansScanner_' + regID] = scanner;
             document.getElementById('stopAnswerQR_' + regID).style.display = 'block';
-
             scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 200, height: 200 } },
-                async (decodedText) => {
-                    // Answer sheet QR scanned
-                    stopAnswerSheetScanner(regID);
-                    const resultDiv = document.getElementById('answerSheetResult_' + regID);
-                    resultDiv.innerHTML = `
-                <p>Scanned Answer Sheet: <strong>${decodedText}</strong></p>
-                <button class="btn btn-success btn-sm" onclick="confirmAnswerSheet('${regID}', '${decodedText.replace(/'/g, "\\'")}')">✅ OK - Attach This Sheet</button>
-                <button class="btn btn-ghost btn-sm" onclick="openAnswerSheetScan('${regID}')">🔄 Rescan</button>
-              `;
-                },
-                () => {}
-            ).catch(() => {
-                showToast('Camera error', 'error');
-                document.getElementById('stopAnswerQR_' + regID).style.display = 'none';
-            });
+                (text) => { stopAnswerSheetScanner(regID);
+                    document.getElementById('answerSheetResult_' + regID).innerHTML = `
+                <p>Scanned: <strong>${text}</strong></p>
+                <button class="btn btn-success btn-sm" onclick="confirmAnswerSheet('${regID}','${text.replace(/'/g, "\\'")}')">✅ OK Attach</button>
+                <button class="btn btn-ghost btn-sm" onclick="openAnswerSheetScan('${regID}')">🔄 Rescan</button>`; }, () => {}
+            ).catch(() => { showToast('Camera error', 'error');
+                document.getElementById('stopAnswerQR_' + regID).style.display = 'none'; });
         }
 
         function stopAnswerSheetScanner(regID) {
-            const scanner = window['_ansScanner_' + regID];
-            if (scanner) {
-                scanner.stop().catch(() => {});
-                delete window['_ansScanner_' + regID];
-            }
-            const stopBtn = document.getElementById('stopAnswerQR_' + regID);
-            if (stopBtn) stopBtn.style.display = 'none';
+            const s = window['_ansScanner_' + regID];
+            if (s) { s.stop().catch(() => {}); delete window['_ansScanner_' + regID]; }
+            const btn = document.getElementById('stopAnswerQR_' + regID);
+            if (btn) btn.style.display = 'none';
         }
 
         async function confirmAnswerSheet(regID, sheetNumber) {
-            try {
-                await db.collection('students').doc(regID).update({
-                    answerSheetAttached: true,
-                    answerSheetNumber: sheetNumber,
-                    status: 'Completed',
-                });
-                await rtdb.ref('students/' + regID).update({
-                    answerSheetAttached: true,
-                    answerSheetNumber: sheetNumber,
-                    status: 'Completed',
-                });
-                showToast('Answer sheet attached successfully! ✅', 'success');
-                document.getElementById('aaStudentDetail').innerHTML =
-                    '<p style="color:var(--success);text-align:center;">✅ Answer sheet attached! Status: Completed</p>';
-                loadAAAssignedStudents();
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
+            await db.collection('students').doc(regID).update({ answerSheetAttached: true, answerSheetNumber: sheetNumber,
+                status: 'Completed' });
+            await rtdb.ref('students/' + regID).update({ answerSheetAttached: true, answerSheetNumber: sheetNumber,
+                status: 'Completed' });
+            showToast('Sheet attached! ✅', 'success');
+            document.getElementById('aaStudentDetail').innerHTML =
+                '<p style="color:var(--success);">✅ Completed!</p>';
+            loadAAAssignedStudents();
         }
 
         async function loadAAAssignedStudents() {
-            const listDiv = document.getElementById('aaAssignedList');
-            if (!listDiv) return;
-            listDiv.innerHTML = '<div class="spinner"></div>';
+            const div = document.getElementById('aaAssignedList');
+            if (!div) return;
+            div.innerHTML = '<div class="spinner"></div>';
             try {
                 const snap = await db.collection('students').orderBy('createdAt', 'desc').limit(50).get();
-                const students = [];
-                snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-                students.sort((a, b) => (a.classRoll || '').localeCompare(b.classRoll || ''));
-                if (students.length === 0) {
-                    listDiv.innerHTML = '<p class="text-center" style="color:var(--text-light);">No students assigned.</p>';
-                    return;
-                }
-                let html = `<div class="table-container"><table><thead><tr>
-              <th>#</th><th>Reg ID</th><th>Name</th><th>Class</th><th>Room</th><th>Sit</th><th>Present</th><th>Sheet</th><th>Status</th>
-            </tr></thead><tbody>`;
-                students.forEach((s, i) => {
-                    html += `
-                <tr style="cursor:pointer;" onclick="document.getElementById('aaSearchInput').value='${s.id}';searchAAStudent();window.scrollTo({top:200,behavior:'smooth'});">
-                  <td>${i+1}</td>
-                  <td>${s.id}</td>
-                  <td>${escapeHTML(s.name)}</td>
-                  <td>${s.class}</td>
-                  <td>${s.examRoomNumber || '-'}</td>
-                  <td>${s.sitNumber || '-'}</td>
-                  <td><span class="badge ${s.present?'badge-success':'badge-danger'}">${s.present?'Yes':'No'}</span></td>
-                  <td><span class="badge ${s.answerSheetAttached?'badge-success':'badge-warning'}">${s.answerSheetAttached?'Yes':'No'}</span></td>
-                  <td><span class="badge badge-info">${s.status||'Registered'}</span></td>
-                </tr>`;
-                });
+                const list = [];
+                snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+                list.sort((a, b) => (a.classRoll || '').localeCompare(b.classRoll || ''));
+                let html =
+                    `<div class="table-container"><table><thead><tr><th>#</th><th>ID</th><th>Name</th><th>Class</th><th>Room</th><th>Sit</th><th>Present</th><th>Sheet</th></tr></thead><tbody>`;
+                list.forEach((s, i) => { html +=
+                        `<tr style="cursor:pointer;" onclick="document.getElementById('aaSearchInput').value='${s.id}';searchAAStudent();"><td>${i+1}</td><td>${s.id}</td><td>${escapeHTML(s.name)}</td><td>${s.class}</td><td>${s.examRoomNumber||'-'}</td><td>${s.sitNumber||'-'}</td><td><span class="badge ${s.present?'badge-success':'badge-danger'}">${s.present?'Yes':'No'}</span></td><td><span class="badge ${s.answerSheetAttached?'badge-success':'badge-warning'}">${s.answerSheetAttached?'Yes':'No'}</span></td></tr>`; });
                 html += '</tbody></table></div>';
-                listDiv.innerHTML = html;
-            } catch (e) {
-                listDiv.innerHTML = `<p style="color:var(--danger);">Error: ${e.message}</p>`;
-            }
+                div.innerHTML = html;
+            } catch (e) { div.innerHTML = `<p style="color:var(--danger);">Error: ${e.message}</p>`; }
         }
 
         function logoutAdminAssist() {
@@ -1569,38 +1304,24 @@
 
         // ==================== ADMIN PORTAL ====================
         function renderAdminPortal() {
-            if (!AppState.adminAuth) {
-                renderAdminLogin();
-                return;
-            }
+            if (!AppState.adminAuth) { renderAdminLogin(); return; }
             renderAdminDashboard();
         }
 
         function renderAdminLogin() {
             root.innerHTML = `
-            <div class="app-header no-print">
-              <div class="header-logo"><div class="logo-icon">RJF</div><div><div class="header-title">Admin Portal</div><div class="header-subtitle">Secure Access</div></div></div>
-              <div class="header-actions"><button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button></div>
-            </div>
-            <div class="card" style="max-width:420px;margin:40px auto;">
-              <div class="card-header">🔐 Admin Login</div>
-              <form onsubmit="handleAdminLogin(event)">
-                <div class="form-group"><label>Email</label><input type="email" id="adminEmail" value="admintasrik@rjfse26.com" required></div>
-                <div class="form-group"><label>Password</label><input type="password" id="adminPassword" value="Tasrik@303" required></div>
-                <button type="submit" class="btn btn-danger w-full">🔓 Login</button>
-              </form>
-              <div id="adminLoginError" style="margin-top:10px;text-align:center;"></div>
-            </div>
-          `;
+            <div class="app-header no-print"><div class="header-logo"><div class="logo-icon">RJF</div><div><div class="header-title">Admin Portal</div></div></div><div class="header-actions"><button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button></div></div>
+            <div class="card" style="max-width:420px;margin:40px auto;"><div class="card-header">🔐 Admin Login</div>
+              <form onsubmit="handleAdminLogin(event)"><div class="form-group"><label>Email</label><input type="email" id="adminEmail" value="admintasrik@rjfse26.com" required></div><div class="form-group"><label>Password</label><input type="password" id="adminPassword" value="Tasrik@303" required></div><button type="submit" class="btn btn-danger w-full">🔓 Login</button></form>
+              <div id="adminLoginError"></div></div>`;
         }
 
         function handleAdminLogin(event) {
             event.preventDefault();
-            const email = document.getElementById('adminEmail').value.trim();
-            const password = document.getElementById('adminPassword').value.trim();
-            if (email === 'admintasrik@rjfse26.com' && password === 'Tasrik@303') {
-                AppState.adminAuth = { email, name: 'Admin Tasrik', loggedInAt: new Date() };
-                showToast('Admin login successful!', 'success');
+            if (document.getElementById('adminEmail').value.trim() === 'admintasrik@rjfse26.com' && document.getElementById(
+                    'adminPassword').value.trim() === 'Tasrik@303') {
+                AppState.adminAuth = { email: 'admintasrik@rjfse26.com', name: 'Admin Tasrik' };
+                showToast('Admin login success!', 'success');
                 renderAdminDashboard();
             } else {
                 document.getElementById('adminLoginError').innerHTML =
@@ -1611,22 +1332,16 @@
 
         async function renderAdminDashboard() {
             root.innerHTML = `
-            <div class="app-header no-print">
-              <div class="header-logo"><div class="logo-icon">RJF</div><div><div class="header-title">Admin Dashboard</div><div class="header-subtitle">Full Control Panel</div></div></div>
-              <div class="header-actions">
-                <button class="btn btn-outline btn-sm" onclick="logoutAdmin()">🚪 Logout</button>
-                <button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button>
-              </div>
-            </div>
-            <div class="tabs no-print" style="flex-wrap:wrap;">
+            <div class="app-header no-print"><div class="header-logo"><div class="logo-icon">RJF</div><div><div class="header-title">Admin Dashboard</div></div></div><div class="header-actions"><button class="btn btn-outline btn-sm" onclick="logoutAdmin()">🚪 Logout</button><button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button></div></div>
+            <div class="tabs no-print">
               <button class="tab-btn active" onclick="switchAdminTab('dashboard',this)">📊 Dashboard</button>
               <button class="tab-btn" onclick="switchAdminTab('students',this)">👨‍🎓 Students</button>
               <button class="tab-btn" onclick="switchAdminTab('assistants',this)">👥 Assistants</button>
               <button class="tab-btn" onclick="switchAdminTab('volunteers',this)">🙋 Volunteers</button>
+              <button class="tab-btn" onclick="switchAdminTab('results',this)">📝 Results</button>
               <button class="tab-btn" onclick="switchAdminTab('reports',this)">📄 Reports</button>
             </div>
-            <div id="adminTabContent"><div class="spinner"></div></div>
-          `;
+            <div id="adminTabContent"><div class="spinner"></div></div>`;
             await loadAdminDashboardStats();
             switchAdminTab('dashboard', document.querySelector('.tab-btn.active'));
         }
@@ -1642,7 +1357,6 @@
                 const volSnap = await db.collection('volunteers').get();
                 const volunteers = [];
                 volSnap.forEach(d => volunteers.push({ id: d.id, ...d.data() }));
-
                 AppState.allStudents = students;
                 AppState.allAssistants = assistants;
                 AppState.allVolunteers = volunteers;
@@ -1657,17 +1371,13 @@
                     present10: students.filter(s => s.class === '10' && s.present).length,
                     absent: students.filter(s => !s.present).length,
                     completed: students.filter(s => s.status === 'Completed').length,
+                    withResult: students.filter(s => s.result && s.result.score !== undefined).length,
                     totalAssistants: assistants.length,
                     totalVolunteers: volunteers.length,
                 };
-            } catch (e) {
-                console.error('Stats load error:', e);
-                AppState.stats = { total: 0, class8: 0, class9: 0, class10: 0, present: 0, present8: 0, present9: 0,
-                    present10: 0, absent: 0, completed: 0, totalAssistants: 0, totalVolunteers: 0 };
-                AppState.allStudents = [];
-                AppState.allAssistants = [];
-                AppState.allVolunteers = [];
-            }
+            } catch (e) { AppState.stats = { total: 0, class8: 0, class9: 0, class10: 0, present: 0, present8: 0,
+                    present9: 0, present10: 0, absent: 0, completed: 0, withResult: 0, totalAssistants: 0,
+                    totalVolunteers: 0 }; }
         }
 
         function switchAdminTab(tab, btn) {
@@ -1683,438 +1393,519 @@
             switch (tab) {
                 case 'dashboard':
                     content.innerHTML = `
-                <div class="card-grid">
-                  <div class="card stat-card"><div class="stat-number">${stats.total||0}</div><div class="stat-label">Total Registered</div></div>
-                  <div class="card stat-card"><div class="stat-number">${stats.class8||0}</div><div class="stat-label">Class 8</div></div>
-                  <div class="card stat-card"><div class="stat-number">${stats.class9||0}</div><div class="stat-label">Class 9</div></div>
-                  <div class="card stat-card"><div class="stat-number">${stats.class10||0}</div><div class="stat-label">Class 10</div></div>
-                </div>
-                <div class="card-grid mt-3">
-                  <div class="card stat-card" style="background:#e8f5e9;"><div class="stat-number" style="color:#2e7d32;">${stats.present||0}</div><div class="stat-label">Total Present</div></div>
-                  <div class="card stat-card" style="background:#fff3e0;"><div class="stat-number" style="color:#e65100;">${stats.absent||0}</div><div class="stat-label">Total Absent</div></div>
-                  <div class="card stat-card" style="background:#e1f5fe;"><div class="stat-number" style="color:#0277bd;">${stats.completed||0}</div><div class="stat-label">Completed</div></div>
-                </div>
-                <div class="card-grid mt-3">
-                  <div class="card stat-card"><div class="stat-number">${stats.present8||0}</div><div class="stat-label">Class 8 Present</div></div>
-                  <div class="card stat-card"><div class="stat-number">${stats.present9||0}</div><div class="stat-label">Class 9 Present</div></div>
-                  <div class="card stat-card"><div class="stat-number">${stats.present10||0}</div><div class="stat-label">Class 10 Present</div></div>
-                </div>
-                <div class="card-grid mt-3">
-                  <div class="card stat-card" style="background:#fce4ec;"><div class="stat-number" style="color:#c62828;">${stats.totalAssistants||0}</div><div class="stat-label">Active Assistants</div></div>
-                  <div class="card stat-card" style="background:#f3e5f5;"><div class="stat-number" style="color:#6a1b9a;">${stats.totalVolunteers||0}</div><div class="stat-label">Total Volunteers</div></div>
-                </div>
-              `;
+                <div class="card-grid"><div class="card stat-card"><div class="stat-number">${stats.total||0}</div><div class="stat-label">Total Registered</div></div><div class="card stat-card"><div class="stat-number">${stats.class8||0}</div><div class="stat-label">Class 8</div></div><div class="card stat-card"><div class="stat-number">${stats.class9||0}</div><div class="stat-label">Class 9</div></div><div class="card stat-card"><div class="stat-number">${stats.class10||0}</div><div class="stat-label">Class 10</div></div></div>
+                <div class="card-grid mt-3"><div class="card stat-card" style="background:#e8f5e9;"><div class="stat-number" style="color:#2e7d32;">${stats.present||0}</div><div class="stat-label">Present</div></div><div class="card stat-card" style="background:#fff3e0;"><div class="stat-number" style="color:#e65100;">${stats.absent||0}</div><div class="stat-label">Absent</div></div><div class="card stat-card" style="background:#e1f5fe;"><div class="stat-number" style="color:#0277bd;">${stats.completed||0}</div><div class="stat-label">Completed</div></div></div>
+                <div class="card-grid mt-3"><div class="card stat-card" style="background:#f3e5f5;"><div class="stat-number" style="color:#6a1b9a;">${stats.withResult||0}</div><div class="stat-label">Results Uploaded</div></div><div class="card stat-card"><div class="stat-number">${stats.totalAssistants||0}</div><div class="stat-label">Assistants</div></div><div class="card stat-card"><div class="stat-number">${stats.totalVolunteers||0}</div><div class="stat-label">Volunteers</div></div></div>`;
                     break;
-
                 case 'students':
-                    let studentRows = '';
-                    const sortedStudents = [...students].sort((a, b) => (a.classRoll || '').localeCompare(b.classRoll ||
-                        ''));
-                    sortedStudents.forEach((s, i) => {
-                        studentRows += `
-                  <tr class="${s.present?'':'highlight-row'}" onclick="openStudentDetailModal('${s.id||s.registrationID}')" style="cursor:pointer;">
-                    <td>${i+1}</td><td>${s.id||s.registrationID}</td><td>${escapeHTML(s.name)}</td>
-                    <td>${s.class}</td><td>${s.group}</td><td>${s.examRoomNumber||'-'}</td><td>${s.sitNumber||'-'}</td>
-                    <td><span class="badge ${s.present?'badge-success':'badge-danger'}">${s.present?'Present':'Absent'}</span></td>
-                    <td><span class="badge badge-info">${s.status||'Registered'}</span></td>
-                  </tr>`;
+                    let rows = '';
+                    [...students].sort((a, b) => (a.classRoll || '').localeCompare(b.classRoll || '')).forEach((s, i) => {
+                        rows +=
+                            `<tr onclick="openStudentDetailModal('${s.id||s.registrationID}')" style="cursor:pointer;"><td>${i+1}</td><td>${s.id||s.registrationID}</td><td>${escapeHTML(s.name)}</td><td>${s.class}</td><td>${s.group}</td><td>${s.examRoomNumber||'-'}</td><td>${s.sitNumber||'-'}</td><td><span class="badge ${s.present?'badge-success':'badge-danger'}">${s.present?'Yes':'No'}</span></td><td><span class="badge badge-info">${s.status||'Registered'}</span></td></tr>`;
                     });
                     content.innerHTML = `
-                <div class="card">
-                  <div class="card-header">👨‍🎓 All Registered Students (${students.length})</div>
-                  <div class="form-row mb-3">
-                    <input type="text" id="studentSearch" placeholder="🔍 Search by name, ID, or mobile..." oninput="filterStudentTable()" style="padding:10px 15px;border-radius:25px;border:2px solid #e0e0e0;width:100%;">
-                    <select id="studentClassFilter" onchange="filterStudentTable()" style="padding:10px 15px;border-radius:25px;border:2px solid #e0e0e0;">
-                      <option value="all">All Classes</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option>
-                    </select>
-                  </div>
-                  <div class="table-container"><table id="studentTable"><thead><tr>
-                    <th>#</th><th>Reg ID</th><th>Name</th><th>Class</th><th>Group</th><th>Room</th><th>Sit</th><th>Present</th><th>Status</th>
-                  </tr></thead><tbody>${studentRows}</tbody></table></div>
-                </div>
-              `;
+                <div class="card"><div class="card-header">👨‍🎓 Students (${students.length})</div>
+                  <div class="form-row mb-3"><input type="text" id="studentSearch" placeholder="🔍 Search..." oninput="filterStudentTable()" style="padding:10px 15px;border-radius:25px;border:2px solid #e0e0e0;width:100%;"><select id="studentClassFilter" onchange="filterStudentTable()" style="padding:10px 15px;border-radius:25px;border:2px solid #e0e0e0;"><option value="all">All</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option></select></div>
+                  <div class="table-container"><table id="studentTable"><thead><tr><th>#</th><th>ID</th><th>Name</th><th>Class</th><th>Group</th><th>Room</th><th>Sit</th><th>Present</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
                     break;
-
                 case 'assistants':
-                    let asstRows = assistants.map((a, i) => `
-                <tr><td>${i+1}</td><td>${escapeHTML(a.name)}</td><td>${a.age||'-'}</td><td>${a.mobile}</td><td>${a.assignedClass||'All'}</td><td>${formatDate(a.createdAt)}</td></tr>
-              `).join('');
+                    let arows = assistants.map((a, i) =>
+                        `<tr><td>${i+1}</td><td>${escapeHTML(a.name)}</td><td>${a.age||'-'}</td><td>${a.mobile}</td><td>${a.assignedClass||'All'}</td><td>${formatDate(a.createdAt)}</td></tr>`
+                        ).join('');
                     content.innerHTML = `
-                <div class="card">
-                  <div class="card-header">👥 Admin Assistants (${assistants.length})</div>
-                  <button class="btn btn-primary btn-sm mb-3" onclick="openAddAssistantModal()">➕ Add Assistant</button>
-                  <div class="table-container"><table><thead><tr><th>#</th><th>Name</th><th>Age</th><th>Mobile</th><th>Assigned Class</th><th>Created</th></tr></thead><tbody>${asstRows||'<tr><td colspan="6">No assistants</td></tr>'}</tbody></table></div>
-                </div>
-              `;
+                <div class="card"><div class="card-header">👥 Assistants (${assistants.length})</div><button class="btn btn-primary btn-sm mb-3" onclick="openAddAssistantModal()">➕ Add</button>
+                  <div class="table-container"><table><thead><tr><th>#</th><th>Name</th><th>Age</th><th>Mobile</th><th>Class</th><th>Created</th></tr></thead><tbody>${arows||'<tr><td colspan="6">None</td></tr>'}</tbody></table></div></div>`;
                     break;
-
                 case 'volunteers':
-                    let volRows = volunteers.map((v, i) => `
-                <tr><td>${i+1}</td><td>${escapeHTML(v.name)}</td><td>${v.mobile}</td><td>${v.gender||'-'}</td><td>${escapeHTML(v.address||'-')}</td><td>${v.workArea||'-'}</td></tr>
-              `).join('');
+                    let vrows = volunteers.map((v, i) =>
+                        `<tr><td>${i+1}</td><td>${escapeHTML(v.name)}</td><td>${v.mobile}</td><td>${v.gender||'-'}</td><td>${escapeHTML(v.address||'-')}</td><td>${v.workArea||'-'}</td></tr>`
+                        ).join('');
                     content.innerHTML = `
-                <div class="card">
-                  <div class="card-header">🙋 Volunteers (${volunteers.length})</div>
-                  <button class="btn btn-primary btn-sm mb-3" onclick="openAddVolunteerModal()">➕ Add Volunteer</button>
-                  <div class="table-container"><table><thead><tr><th>#</th><th>Name</th><th>Mobile</th><th>Gender</th><th>Address</th><th>Work Area</th></tr></thead><tbody>${volRows||'<tr><td colspan="6">No volunteers</td></tr>'}</tbody></table></div>
-                </div>
-              `;
+                <div class="card"><div class="card-header">🙋 Volunteers (${volunteers.length})</div><button class="btn btn-primary btn-sm mb-3" onclick="openAddVolunteerModal()">➕ Add</button>
+                  <div class="table-container"><table><thead><tr><th>#</th><th>Name</th><th>Mobile</th><th>Gender</th><th>Address</th><th>Work</th></tr></thead><tbody>${vrows||'<tr><td colspan="6">None</td></tr>'}</tbody></table></div></div>`;
                     break;
-
+                case 'results':
+                    renderAnonymousResultUpload(content);
+                    break;
                 case 'reports':
                     content.innerHTML = `
-                <div class="card-grid">
-                  <div class="card text-center">
-                    <div class="card-header">📄 Generate Reports</div>
-                    <button class="btn btn-danger w-full mb-2" onclick="generatePDFReport('all')">📥 All Students Report</button>
-                    <button class="btn btn-info w-full mb-2" onclick="generatePDFReport('present')">✅ Present Students</button>
-                    <button class="btn btn-warning w-full mb-2" onclick="generatePDFReport('absent')">❌ Absent Students</button>
-                    <button class="btn btn-success w-full" onclick="generatePDFReport('completed')">🎯 Completed Students</button>
-                  </div>
-                  <div class="card text-center">
-                    <div class="card-header">📋 Class-wise Reports</div>
-                    <button class="btn btn-primary w-full mb-2" onclick="generatePDFReport('class8')">Class 8 Report</button>
-                    <button class="btn btn-primary w-full mb-2" onclick="generatePDFReport('class9')">Class 9 Report</button>
-                    <button class="btn btn-primary w-full" onclick="generatePDFReport('class10')">Class 10 Report</button>
-                  </div>
-                </div>
-              `;
+                <div class="card-grid"><div class="card text-center"><div class="card-header">📄 Reports</div>
+                  <button class="btn btn-danger w-full mb-2" onclick="generatePDFReport('all')">📥 All Students</button>
+                  <button class="btn btn-info w-full mb-2" onclick="generatePDFReport('present')">✅ Present</button>
+                  <button class="btn btn-warning w-full mb-2" onclick="generatePDFReport('absent')">❌ Absent</button>
+                  <button class="btn btn-success w-full" onclick="generatePDFReport('completed')">🎯 Completed</button>
+                </div><div class="card text-center"><div class="card-header">📋 Class-wise</div>
+                  <button class="btn btn-primary w-full mb-2" onclick="generatePDFReport('class8')">Class 8</button>
+                  <button class="btn btn-primary w-full mb-2" onclick="generatePDFReport('class9')">Class 9</button>
+                  <button class="btn btn-primary w-full" onclick="generatePDFReport('class10')">Class 10</button>
+                </div></div>`;
                     break;
             }
         }
 
-        function filterStudentTable() {
-            const searchTerm = (document.getElementById('studentSearch')?.value || '').toLowerCase();
-            const classFilter = document.getElementById('studentClassFilter')?.value || 'all';
-            const table = document.getElementById('studentTable');
-            if (!table) return;
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                const cls = row.cells[3]?.textContent || '';
-                const matchSearch = !searchTerm || text.includes(searchTerm);
-                const matchClass = classFilter === 'all' || cls === classFilter;
-                row.style.display = matchSearch && matchClass ? '' : 'none';
+        // ==================== ANONYMOUS RESULT UPLOAD ====================
+        function renderAnonymousResultUpload(container) {
+            // Reset session
+            AppState.resultUploadSession = {
+                scannedAnswerSheetId: null,
+                scannedStudentId: null,
+                studentData: null,
+            };
+
+            container.innerHTML = `
+            <div class="card">
+              <div class="card-header">📝 Anonymous Result Upload</div>
+              <div class="anonymous-badge">🔒 ANONYMOUS MODE</div>
+              <div class="anonymous-warning">
+                <span style="font-size:1.5rem;">⚠️</span>
+                <span><strong>Privacy Protection:</strong> Student identity is hidden. You are evaluating based on answer sheet QR only.</span>
+              </div>
+              <p style="color:var(--text-light);margin-bottom:16px;">Step 1: Scan the answer sheet QR code to identify the submission.</p>
+              <div id="resultUploadStep1">
+                <div class="form-row">
+                  <button class="btn btn-info w-full" onclick="startResultAnswerSheetScan()">📷 Scan Answer Sheet QR</button>
+                  <button class="btn btn-ghost w-full" onclick="resetResultUpload()">🔄 Reset</button>
+                </div>
+                <div id="resultAnswerSheetQR" style="max-width:350px;margin:12px auto;"></div>
+                <button class="btn btn-ghost btn-sm w-full mt-2" id="stopResultAnsQR" style="display:none;" onclick="stopResultAnswerSheetScanner()">⏹️ Stop Scanner</button>
+                <div id="resultAnswerSheetInfo" style="margin-top:12px;"></div>
+              </div>
+              <div id="resultUploadStep2" style="display:none;">
+                <hr style="margin:16px 0;border-color:#e0e0e0;">
+                <p style="color:var(--text-light);">Step 2: Enter the score for this answer sheet.</p>
+                <div class="anonymous-warning">
+                  <span>📋 Answer Sheet ID: <strong id="resultDisplaySheetId"></strong></span>
+                </div>
+                <div class="form-group">
+                  <label>📊 Enter Score / Marks *</label>
+                  <input type="number" id="resultScore" placeholder="e.g. 85" min="0" max="200" required style="font-size:1.2rem;text-align:center;font-weight:700;">
+                  <small style="color:var(--text-light);">Enter the total marks obtained</small>
+                </div>
+                <div class="form-group">
+                  <label>💬 Comments (Optional)</label>
+                  <input type="text" id="resultComments" placeholder="Any remarks...">
+                </div>
+                <button class="btn btn-success w-full" onclick="uploadAnonymousResult()">✅ Upload Result Anonymously</button>
+                <div id="resultUploadStatus" style="margin-top:12px;"></div>
+              </div>
+            </div>
+            <div class="card mt-3">
+              <div class="card-header">📋 Recent Results Uploaded</div>
+              <div id="recentResultsList"><p style="color:var(--text-light);">Loading...</p></div>
+            </div>
+          `;
+
+            // Load recent results
+            loadRecentResults();
+        }
+
+        function startResultAnswerSheetScan() {
+            const qrDiv = document.getElementById('resultAnswerSheetQR');
+            if (!qrDiv) return;
+            qrDiv.innerHTML = '';
+            const scanner = new Html5Qrcode('resultAnswerSheetQR');
+            window._resultAnsScanner = scanner;
+            document.getElementById('stopResultAnsQR').style.display = 'block';
+            document.getElementById('resultAnswerSheetInfo').innerHTML =
+                '<p style="color:var(--info);">⏳ Scanning... Point camera at answer sheet QR code.</p>';
+
+            scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 220, height: 220 } },
+                async (decodedText) => {
+                    // Scanned answer sheet QR
+                    stopResultAnswerSheetScanner();
+                    const sheetId = decodedText.trim();
+                    document.getElementById('resultAnswerSheetInfo').innerHTML =
+                        `<p style="color:var(--success);">✅ Answer Sheet Scanned: <strong>${sheetId}</strong></p><p style="color:var(--text-light);">Searching for matching student...</p>`;
+
+                    // Find student by answerSheetNumber
+                    try {
+                        const qSnap = await db.collection('students').where('answerSheetNumber', '==', sheetId)
+                            .limit(1).get();
+                        if (qSnap.empty) {
+                            document.getElementById('resultAnswerSheetInfo').innerHTML +=
+                                '<p style="color:var(--danger);">❌ No student found with this answer sheet ID. Please check and try again.</p>';
+                            AppState.resultUploadSession = { scannedAnswerSheetId: null,
+                                scannedStudentId: null, studentData: null };
+                            document.getElementById('resultUploadStep2').style.display = 'none';
+                            return;
+                        }
+                        const doc = qSnap.docs[0];
+                        const studentData = doc.data();
+                        const studentId = doc.id;
+
+                        // Store in session (but DO NOT display name)
+                        AppState.resultUploadSession = {
+                            scannedAnswerSheetId: sheetId,
+                            scannedStudentId: studentId,
+                            studentData: studentData,
+                        };
+
+                        // Show Step 2 (anonymous - only show sheet ID)
+                        document.getElementById('resultDisplaySheetId').textContent = sheetId;
+                        document.getElementById('resultUploadStep2').style.display = 'block';
+                        document.getElementById('resultScore').value = '';
+                        document.getElementById('resultComments').value = '';
+                        document.getElementById('resultUploadStatus').innerHTML = '';
+                        document.getElementById('resultAnswerSheetInfo').innerHTML +=
+                            '<p style="color:var(--success);">✅ Student matched. Proceed to enter score below.</p>';
+                    } catch (e) {
+                        document.getElementById('resultAnswerSheetInfo').innerHTML +=
+                            `<p style="color:var(--danger);">Error: ${e.message}</p>`;
+                    }
+                },
+                () => {}
+            ).catch(() => {
+                showToast('Camera access denied', 'error');
+                document.getElementById('stopResultAnsQR').style.display = 'none';
+                document.getElementById('resultAnswerSheetInfo').innerHTML =
+                    '<p style="color:var(--danger);">Camera error. Please try again.</p>';
             });
         }
 
+        function stopResultAnswerSheetScanner() {
+            if (window._resultAnsScanner) {
+                window._resultAnsScanner.stop().catch(() => {});
+                window._resultAnsScanner = null;
+            }
+            const btn = document.getElementById('stopResultAnsQR');
+            if (btn) btn.style.display = 'none';
+        }
+
+        function resetResultUpload() {
+            stopResultAnswerSheetScanner();
+            AppState.resultUploadSession = { scannedAnswerSheetId: null, scannedStudentId: null, studentData: null };
+            document.getElementById('resultUploadStep2').style.display = 'none';
+            document.getElementById('resultAnswerSheetInfo').innerHTML = '';
+            document.getElementById('resultAnswerSheetQR').innerHTML = '';
+            document.getElementById('resultUploadStatus').innerHTML = '';
+            document.getElementById('stopResultAnsQR').style.display = 'none';
+            document.getElementById('resultScore') && (document.getElementById('resultScore').value = '');
+            document.getElementById('resultComments') && (document.getElementById('resultComments').value = '');
+        }
+
+        async function uploadAnonymousResult() {
+            const session = AppState.resultUploadSession;
+            if (!session || !session.scannedStudentId) {
+                showToast('Please scan an answer sheet first.', 'error');
+                return;
+            }
+            const scoreInput = document.getElementById('resultScore');
+            const commentsInput = document.getElementById('resultComments');
+            const score = parseFloat(scoreInput?.value);
+            if (isNaN(score) || score < 0) {
+                showToast('Please enter a valid score.', 'error');
+                return;
+            }
+            const statusDiv = document.getElementById('resultUploadStatus');
+            statusDiv.innerHTML = '<div class="spinner"></div><p>Uploading result...</p>';
+
+            const resultData = {
+                score: score,
+                comments: commentsInput?.value?.trim() || '',
+                answerSheetId: session.scannedAnswerSheetId,
+                uploadedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                uploadedBy: 'Anonymous Evaluator',
+            };
+
+            try {
+                // Update Firestore
+                await db.collection('students').doc(session.scannedStudentId).update({
+                    result: resultData,
+                    status: 'Result Published',
+                });
+                // Update Realtime DB
+                await rtdb.ref('students/' + session.scannedStudentId + '/result').set({
+                    ...resultData,
+                    uploadedAt: Date.now(),
+                });
+                await rtdb.ref('students/' + session.scannedStudentId).update({ status: 'Result Published' });
+
+                statusDiv.innerHTML = `
+              <div style="background:#e8f5e9;padding:16px;border-radius:10px;text-align:center;">
+                <div style="font-size:2rem;">✅</div>
+                <h4 style="color:#2e7d32;">Result Uploaded Successfully!</h4>
+                <p>Answer Sheet: <strong>${session.scannedAnswerSheetId}</strong></p>
+                <p>Score: <strong>${score}</strong></p>
+                <p style="color:var(--text-light);font-size:0.8rem;">Student identity remains anonymous.</p>
+              </div>`;
+                showToast('Result uploaded anonymously! ✅', 'success');
+
+                // Reset for next upload
+                setTimeout(() => {
+                    resetResultUpload();
+                    loadRecentResults();
+                    loadAdminDashboardStats();
+                }, 2000);
+            } catch (e) {
+                statusDiv.innerHTML = `<p style="color:var(--danger);">Error: ${e.message}</p>`;
+                showToast('Upload failed: ' + e.message, 'error');
+            }
+        }
+
+        async function loadRecentResults() {
+            const div = document.getElementById('recentResultsList');
+            if (!div) return;
+            try {
+                const snap = await db.collection('students').where('result.score', '>=', 0).orderBy('result.score',
+                    'desc').limit(10).get();
+                const results = [];
+                snap.forEach(d => {
+                    const data = d.data();
+                    if (data.result) results.push({ id: d.id, ...data });
+                });
+                if (results.length === 0) {
+                    div.innerHTML = '<p style="color:var(--text-light);text-align:center;">No results uploaded yet.</p>';
+                    return;
+                }
+                let html =
+                    `<div class="table-container"><table><thead><tr><th>#</th><th>Answer Sheet ID</th><th>Score</th><th>Comments</th><th>Uploaded</th></tr></thead><tbody>`;
+                results.forEach((r, i) => {
+                    html +=
+                        `<tr><td>${i+1}</td><td>${r.result.answerSheetId||'N/A'}</td><td><strong>${r.result.score}</strong></td><td>${escapeHTML(r.result.comments||'-')}</td><td>${formatDate(r.result.uploadedAt)}</td></tr>`;
+                });
+                html += '</tbody></table></div>';
+                div.innerHTML = html;
+            } catch (e) { div.innerHTML = `<p style="color:var(--danger);">Error: ${e.message}</p>`; }
+        }
+
+        // ==================== STUDENT MODAL & ACTIONS ====================
         async function openStudentDetailModal(regID) {
             try {
                 const docSnap = await db.collection('students').doc(regID).get();
-                if (!docSnap.exists) { showToast('Student not found', 'error'); return; }
+                if (!docSnap.exists) { showToast('Not found', 'error'); return; }
                 const s = docSnap.data();
                 const modalHTML = `
               <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
-                <div class="modal">
-                  <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
-                  <h3 style="color:var(--primary);">📋 Student Detail: ${escapeHTML(s.name)}</h3>
-                  <table style="width:100%;margin:12px 0;">
-                    <tr><td><strong>Reg ID</strong></td><td>${regID}</td></tr>
-                    <tr><td><strong>Name</strong></td><td>${escapeHTML(s.name)}</td></tr>
-                    <tr><td><strong>Father</strong></td><td>${escapeHTML(s.fatherName)}</td></tr>
-                    <tr><td><strong>Mother</strong></td><td>${escapeHTML(s.motherName)}</td></tr>
-                    <tr><td><strong>Class</strong></td><td>${s.class}</td></tr>
-                    <tr><td><strong>Group</strong></td><td>${s.group}</td></tr>
-                    <tr><td><strong>Roll</strong></td><td>${s.classRoll}</td></tr>
-                    <tr><td><strong>Mobile</strong></td><td>${s.mobile}</td></tr>
-                    <tr><td><strong>Status</strong></td><td>${s.status||'Registered'}</td></tr>
-                  </table>
-                  <div class="form-row">
-                    <div class="form-group"><label>Exam Room Number</label><input type="text" id="editRoom" value="${s.examRoomNumber||''}" placeholder="e.g. 301"></div>
-                    <div class="form-group"><label>Sit Number</label><input type="text" id="editSit" value="${s.sitNumber||''}" placeholder="e.g. A12"></div>
-                  </div>
-                  <div class="form-group"><label>Status</label>
-                    <select id="editStatus">
-                      <option value="Registered" ${s.status==='Registered'?'selected':''}>Registered</option>
-                      <option value="Present" ${s.status==='Present'?'selected':''}>Present</option>
-                      <option value="Answer Sheet Attached" ${s.status==='Answer Sheet Attached'?'selected':''}>Answer Sheet Attached</option>
-                      <option value="Completed" ${s.status==='Completed'?'selected':''}>Completed</option>
-                    </select>
-                  </div>
-                  <button class="btn btn-primary w-full" onclick="updateStudentDetail('${regID}')">💾 Save Changes</button>
-                  <button class="btn btn-info w-full mt-2" onclick="generateAdmitCard('${regID}')">🎫 Generate Admit Card</button>
-                </div>
-              </div>
-            `;
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = modalHTML;
-                document.body.appendChild(tempDiv.firstElementChild);
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
+                <div class="modal"><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                  <h3>📋 ${escapeHTML(s.name)}</h3>
+                  <table style="width:100%;"><tr><td><strong>ID</strong></td><td>${regID}</td></tr><tr><td><strong>Class</strong></td><td>${s.class} | ${s.group}</td></tr><tr><td><strong>Room</strong></td><td>${s.examRoomNumber||'-'}</td></tr><tr><td><strong>Sit</strong></td><td>${s.sitNumber||'-'}</td></tr><tr><td><strong>Status</strong></td><td>${s.status||'Registered'}</td></tr></table>
+                  <div class="form-row mt-3"><div class="form-group"><label>Room</label><input type="text" id="editRoom" value="${s.examRoomNumber||''}"></div><div class="form-group"><label>Sit</label><input type="text" id="editSit" value="${s.sitNumber||''}"></div></div>
+                  <div class="form-group"><label>Status</label><select id="editStatus"><option value="Registered" ${s.status==='Registered'?'selected':''}>Registered</option><option value="Present" ${s.status==='Present'?'selected':''}>Present</option><option value="Completed" ${s.status==='Completed'?'selected':''}>Completed</option><option value="Result Published" ${s.status==='Result Published'?'selected':''}>Result Published</option></select></div>
+                  <button class="btn btn-primary w-full" onclick="updateStudentDetail('${regID}')">💾 Save</button>
+                  <button class="btn btn-info w-full mt-2" onclick="generateAdmitCard('${regID}')">🎫 Admit Card</button>
+                </div></div>`;
+                const temp = document.createElement('div');
+                temp.innerHTML = modalHTML;
+                document.body.appendChild(temp.firstElementChild);
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
         async function updateStudentDetail(regID) {
             const room = document.getElementById('editRoom').value.trim();
             const sit = document.getElementById('editSit').value.trim();
             const status = document.getElementById('editStatus').value;
-            const present = status === 'Present' || status === 'Answer Sheet Attached' || status === 'Completed';
+            const present = status === 'Present' || status === 'Completed' || status === 'Result Published';
             try {
-                await db.collection('students').doc(regID).update({
-                    examRoomNumber: room,
-                    sitNumber: sit,
-                    status: status,
-                    present: present,
-                    checkedIn: present,
-                });
-                await rtdb.ref('students/' + regID).update({
-                    examRoomNumber: room,
-                    sitNumber: sit,
-                    status: status,
-                    present: present,
-                    checkedIn: present,
-                });
-                showToast('Student updated!', 'success');
+                await db.collection('students').doc(regID).update({ examRoomNumber: room, sitNumber: sit, status,
+                    present, checkedIn: present });
+                await rtdb.ref('students/' + regID).update({ examRoomNumber: room, sitNumber: sit, status, present,
+                    checkedIn: present });
+                showToast('Updated!', 'success');
                 document.querySelector('.modal-overlay')?.remove();
                 await loadAdminDashboardStats();
                 switchAdminTab('students', document.querySelector('.tab-btn'));
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
         async function generateAdmitCard(regID) {
             try {
                 const docSnap = await db.collection('students').doc(regID).get();
-                if (!docSnap.exists) { showToast('Student not found', 'error'); return; }
+                if (!docSnap.exists) { showToast('Not found', 'error'); return; }
                 const s = docSnap.data();
-                const admitHTML = `
-              <div id="admitCardPrint" style="background:#fff;padding:30px;border:3px solid #1a237e;border-radius:16px;max-width:500px;margin:20px auto;font-family:'Segoe UI',sans-serif;">
-                <div style="text-align:center;border-bottom:2px solid #1a237e;padding-bottom:12px;">
-                  <h2 style="color:#1a237e;margin:0;">RJF Scholarship Examination 2026</h2>
-                  <p style="color:#616161;">Admit Card / Seat Token</p>
-                </div>
-                <div style="padding:16px;">
-                  <p><strong>Registration ID:</strong> ${regID}</p>
-                  <p><strong>Name:</strong> ${escapeHTML(s.name)}</p>
-                  <p><strong>Father:</strong> ${escapeHTML(s.fatherName)}</p>
+                const win = window.open('', '_blank', 'width=600,height=700');
+                win.document.write(`
+              <html><head><title>Admit Card - ${regID}</title></head><body style="font-family:'Segoe UI',sans-serif;">
+                <div style="max-width:500px;margin:20px auto;border:3px solid #1a237e;border-radius:16px;padding:24px;">
+                  <h2 style="color:#1a237e;text-align:center;">RJFSE 2026 Admit Card</h2>
+                  <p><strong>ID:</strong> ${regID}</p><p><strong>Name:</strong> ${escapeHTML(s.name)}</p>
                   <p><strong>Class:</strong> ${s.class} | <strong>Group:</strong> ${s.group}</p>
-                  <p><strong>Roll:</strong> ${s.classRoll}</p>
-                  <div style="background:#fff9c4;padding:12px;border-radius:8px;margin:12px 0;">
-                    <p style="font-size:1.2rem;"><strong>📌 Exam Room:</strong> ${s.examRoomNumber||'TBD'}</p>
-                    <p style="font-size:1.2rem;"><strong>💺 Seat Number:</strong> ${s.sitNumber||'TBD'}</p>
-                  </div>
-                  <p style="font-size:0.8rem;color:#616161;">Please bring this admit card on exam day.</p>
-                </div>
-              </div>
-            `;
-                const printWindow = window.open('', '_blank', 'width=600,height=700');
-                printWindow.document.write(`
-              <html><head><title>Admit Card - ${regID}</title></head>
-              <body>${admitHTML}<script>window.onload=function(){window.print();}<\/script></body></html>
-            `);
-                printWindow.document.close();
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
+                  <div style="background:#fff9c4;padding:12px;border-radius:8px;"><p><strong>Room:</strong> ${s.examRoomNumber||'TBD'}</p><p><strong>Seat:</strong> ${s.sitNumber||'TBD'}</p></div>
+                </div><script>window.onload=function(){window.print();};<\/script></body></html>`);
+                win.document.close();
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
         function openAddAssistantModal() {
             const modalHTML = `
             <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
-              <div class="modal">
-                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
-                <h3>➕ Add Admin Assistant</h3>
-                <form onsubmit="handleAddAssistant(event)">
-                  <div class="form-group"><label>Name *</label><input type="text" id="asstName" required></div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Age</label><input type="number" id="asstAge"></div>
-                    <div class="form-group"><label>Mobile *</label><input type="tel" id="asstMobile" required></div>
-                  </div>
-                  <div class="form-group"><label>Assigned Class</label>
-                    <select id="asstClass"><option value="All">All</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option></select>
-                  </div>
-                  <button type="submit" class="btn btn-primary w-full">💾 Save Assistant</button>
-                </form>
-              </div>
-            </div>
-          `;
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = modalHTML;
-                document.body.appendChild(tempDiv.firstElementChild);
-            }
+              <div class="modal"><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                <h3>➕ Add Assistant</h3>
+                <form onsubmit="handleAddAssistant(event)"><div class="form-group"><label>Name</label><input type="text" id="asstName" required></div><div class="form-row"><div class="form-group"><label>Age</label><input type="number" id="asstAge"></div><div class="form-group"><label>Mobile</label><input type="tel" id="asstMobile" required></div></div><div class="form-group"><label>Assigned Class</label><select id="asstClass"><option value="All">All</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div><button type="submit" class="btn btn-primary w-full">💾 Save</button></form>
+              </div></div>`;
+            const temp = document.createElement('div');
+            temp.innerHTML = modalHTML;
+            document.body.appendChild(temp.firstElementChild);
+        }
 
-            async function handleAddAssistant(event) {
-                event.preventDefault();
-                const data = {
-                    name: document.getElementById('asstName').value.trim(),
-                    age: document.getElementById('asstAge').value || '',
-                    mobile: document.getElementById('asstMobile').value.trim(),
-                    assignedClass: document.getElementById('asstClass').value,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                };
-                try {
-                    await db.collection('adminAssistants').add(data);
-                    showToast('Assistant added!', 'success');
-                    document.querySelector('.modal-overlay')?.remove();
-                    await loadAdminDashboardStats();
-                    switchAdminTab('assistants', document.querySelector('.tab-btn'));
-                } catch (e) {
-                    showToast('Error: ' + e.message, 'error');
-                }
-            }
+        async function handleAddAssistant(event) {
+            event.preventDefault();
+            const data = {
+                name: document.getElementById('asstName').value.trim(),
+                age: document.getElementById('asstAge').value,
+                mobile: document.getElementById('asstMobile').value.trim(),
+                assignedClass: document.getElementById('asstClass').value,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            };
+            try {
+                await db.collection('adminAssistants').add(data);
+                showToast('Assistant added!', 'success');
+                document.querySelector('.modal-overlay')?.remove();
+                await loadAdminDashboardStats();
+                switchAdminTab('assistants', document.querySelector('.tab-btn'));
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        }
 
-            function openAddVolunteerModal() {
-                const modalHTML = `
+        function openAddVolunteerModal() {
+            const modalHTML = `
             <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
-              <div class="modal">
-                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+              <div class="modal"><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
                 <h3>🙋 Add Volunteer</h3>
-                <form onsubmit="handleAddVolunteer(event)">
-                  <div class="form-row">
-                    <div class="form-group"><label>Name *</label><input type="text" id="volName" required></div>
-                    <div class="form-group"><label>Mobile *</label><input type="tel" id="volMobile" required></div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group"><label>Gender</label><select id="volGender"><option>Male</option><option>Female</option><option>Other</option></select></div>
-                    <div class="form-group"><label>Address</label><input type="text" id="volAddress"></div>
-                  </div>
-                  <div class="form-group"><label>Work Area</label><input type="text" id="volWork" placeholder="e.g. Admin Assistant, Exam Guard Room 301"></div>
-                  <button type="submit" class="btn btn-primary w-full">💾 Save Volunteer</button>
-                </form>
-              </div>
-            </div>
-          `;
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = modalHTML;
-                document.body.appendChild(tempDiv.firstElementChild);
+                <form onsubmit="handleAddVolunteer(event)"><div class="form-row"><div class="form-group"><label>Name</label><input type="text" id="volName" required></div><div class="form-group"><label>Mobile</label><input type="tel" id="volMobile" required></div></div><div class="form-row"><div class="form-group"><label>Gender</label><select id="volGender"><option>Male</option><option>Female</option><option>Other</option></select></div><div class="form-group"><label>Address</label><input type="text" id="volAddress"></div></div><div class="form-group"><label>Work Area</label><input type="text" id="volWork" placeholder="e.g. Exam Guard Room 301"></div><button type="submit" class="btn btn-primary w-full">💾 Save</button></form>
+              </div></div>`;
+            const temp = document.createElement('div');
+            temp.innerHTML = modalHTML;
+            document.body.appendChild(temp.firstElementChild);
+        }
+
+        async function handleAddVolunteer(event) {
+            event.preventDefault();
+            const data = {
+                name: document.getElementById('volName').value.trim(),
+                mobile: document.getElementById('volMobile').value.trim(),
+                gender: document.getElementById('volGender').value,
+                address: document.getElementById('volAddress').value.trim(),
+                workArea: document.getElementById('volWork').value.trim(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            };
+            try {
+                await db.collection('volunteers').add(data);
+                showToast('Volunteer added!', 'success');
+                document.querySelector('.modal-overlay')?.remove();
+                await loadAdminDashboardStats();
+                switchAdminTab('volunteers', document.querySelector('.tab-btn'));
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        }
+
+        async function generatePDFReport(type) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const students = AppState.allStudents || [];
+            let filtered = [],
+                title = '';
+            switch (type) {
+                case 'all':
+                    filtered = students;
+                    title = 'All Students';
+                    break;
+                case 'present':
+                    filtered = students.filter(s => s.present);
+                    title = 'Present';
+                    break;
+                case 'absent':
+                    filtered = students.filter(s => !s.present);
+                    title = 'Absent';
+                    break;
+                case 'completed':
+                    filtered = students.filter(s => s.status === 'Completed');
+                    title = 'Completed';
+                    break;
+                case 'class8':
+                    filtered = students.filter(s => s.class === '8');
+                    title = 'Class 8';
+                    break;
+                case 'class9':
+                    filtered = students.filter(s => s.class === '9');
+                    title = 'Class 9';
+                    break;
+                case 'class10':
+                    filtered = students.filter(s => s.class === '10');
+                    title = 'Class 10';
+                    break;
             }
+            doc.setFontSize(16);
+            doc.setTextColor(26, 35, 126);
+            doc.text('RJFSE 2026 Report', 14, 20);
+            doc.setFontSize(12);
+            doc.setTextColor(97, 97, 97);
+            doc.text(`${title} (${filtered.length})`, 14, 30);
+            doc.autoTable({
+                startY: 38,
+                head: [
+                    ['#', 'ID', 'Name', 'Class', 'Group', 'Room', 'Sit', 'Present', 'Status']
+                ],
+                body: filtered.map((s, i) => [i + 1, s.id || s.registrationID, s.name, s.class, s.group, s
+                    .examRoomNumber || '-', s.sitNumber || '-', s.present ? 'Yes' : 'No', s.status || 'Registered'
+                ]),
+                styles: { fontSize: 7, cellPadding: 2 },
+                headStyles: { fillColor: [26, 35, 126], textColor: 255 },
+            });
+            doc.save(`RJFSE26_${type}_report.pdf`);
+            showToast('PDF downloaded!', 'success');
+        }
 
-            async function handleAddVolunteer(event) {
-                event.preventDefault();
-                const data = {
-                    name: document.getElementById('volName').value.trim(),
-                    mobile: document.getElementById('volMobile').value.trim(),
-                    gender: document.getElementById('volGender').value,
-                    address: document.getElementById('volAddress').value.trim(),
-                    workArea: document.getElementById('volWork').value.trim(),
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                };
-                try {
-                    await db.collection('volunteers').add(data);
-                    showToast('Volunteer added!', 'success');
-                    document.querySelector('.modal-overlay')?.remove();
-                    await loadAdminDashboardStats();
-                    switchAdminTab('volunteers', document.querySelector('.tab-btn'));
-                } catch (e) {
-                    showToast('Error: ' + e.message, 'error');
-                }
-            }
+        function filterStudentTable() {
+            const search = (document.getElementById('studentSearch')?.value || '').toLowerCase();
+            const cls = document.getElementById('studentClassFilter')?.value || 'all';
+            const table = document.getElementById('studentTable');
+            if (!table) return;
+            table.querySelectorAll('tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const rowClass = row.cells[3]?.textContent || '';
+                row.style.display = (!search || text.includes(search)) && (cls === 'all' || rowClass === cls) ?
+                    '' : 'none';
+            });
+        }
 
-            async function generatePDFReport(type) {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-                const students = AppState.allStudents || [];
-                let filtered = [];
-                let title = '';
+        function logoutAdmin() {
+            AppState.adminAuth = null;
+            AppState.stats = null;
+            AppState.allStudents = [];
+            stopResultAnswerSheetScanner();
+            renderApp();
+            showToast('Admin logged out.', '');
+        }
 
-                switch (type) {
-                    case 'all':
-                        filtered = students;
-                        title = 'All Registered Students';
-                        break;
-                    case 'present':
-                        filtered = students.filter(s => s.present);
-                        title = 'Present Students';
-                        break;
-                    case 'absent':
-                        filtered = students.filter(s => !s.present);
-                        title = 'Absent Students';
-                        break;
-                    case 'completed':
-                        filtered = students.filter(s => s.status === 'Completed');
-                        title = 'Completed Students';
-                        break;
-                    case 'class8':
-                        filtered = students.filter(s => s.class === '8');
-                        title = 'Class 8 Students';
-                        break;
-                    case 'class9':
-                        filtered = students.filter(s => s.class === '9');
-                        title = 'Class 9 Students';
-                        break;
-                    case 'class10':
-                        filtered = students.filter(s => s.class === '10');
-                        title = 'Class 10 Students';
-                        break;
-                }
+        // ==================== INITIALIZATION ====================
+        function initApp() {
+            if (initialLoader) initialLoader.style.display = 'none';
+            renderLandingPage();
+        }
 
-                doc.setFontSize(16);
-                doc.setTextColor(26, 35, 126);
-                doc.text('RJF Scholarship Examination 2026', 14, 20);
-                doc.setFontSize(12);
-                doc.setTextColor(97, 97, 97);
-                doc.text(`Report: ${title} (${filtered.length} students)`, 14, 30);
-                doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 38);
+        // Expose functions globally
+        window.navigateTo = navigateTo;
+        window.handleStudentRegistration = handleStudentRegistration;
+        window.handleClassChange = handleClassChange;
+        window.switchSATab = switchSATab;
+        window.searchStudentAssistant = searchStudentAssistant;
+        window.stopSAQRScanner = stopSAQRScanner;
+        window.handleAdminAssistLogin = handleAdminAssistLogin;
+        window.logoutAdminAssist = logoutAdminAssist;
+        window.switchAATab = switchAATab;
+        window.searchAAStudent = searchAAStudent;
+        window.markAAPresent = markAAPresent;
+        window.openAnswerSheetScan = openAnswerSheetScan;
+        window.stopAnswerSheetScanner = stopAnswerSheetScanner;
+        window.confirmAnswerSheet = confirmAnswerSheet;
+        window.loadAAAssignedStudents = loadAAAssignedStudents;
+        window.handleAdminLogin = handleAdminLogin;
+        window.logoutAdmin = logoutAdmin;
+        window.switchAdminTab = switchAdminTab;
+        window.filterStudentTable = filterStudentTable;
+        window.openStudentDetailModal = openStudentDetailModal;
+        window.updateStudentDetail = updateStudentDetail;
+        window.generateAdmitCard = generateAdmitCard;
+        window.openAddAssistantModal = openAddAssistantModal;
+        window.handleAddAssistant = handleAddAssistant;
+        window.openAddVolunteerModal = openAddVolunteerModal;
+        window.handleAddVolunteer = handleAddVolunteer;
+        window.generatePDFReport = generatePDFReport;
+        window.startResultAnswerSheetScan = startResultAnswerSheetScan;
+        window.stopResultAnswerSheetScanner = stopResultAnswerSheetScanner;
+        window.resetResultUpload = resetResultUpload;
+        window.uploadAnonymousResult = uploadAnonymousResult;
 
-                const tableData = filtered.map((s, i) => [
-                    i + 1, s.registrationID || s.id, s.name, s.class, s.group, s.examRoomNumber || '-', s
-                    .sitNumber || '-', s.present ? 'Yes' : 'No', s.status || 'Registered'
-                ]);
-
-                doc.autoTable({
-                    startY: 44,
-                    head: [
-                        ['#', 'Reg ID', 'Name', 'Class', 'Group', 'Room', 'Sit', 'Present', 'Status']
-                    ],
-                    body: tableData,
-                    styles: { fontSize: 7, cellPadding: 2 },
-                    headStyles: { fillColor: [26, 35, 126], textColor: 255 },
-                });
-
-                doc.save(`RJFSE26_${type}_report.pdf`);
-                showToast('PDF report downloaded!', 'success');
-            }
-
-            function logoutAdmin() {
-                AppState.adminAuth = null;
-                AppState.stats = null;
-                AppState.allStudents = [];
-                renderApp();
-                showToast('Admin logged out.', '');
-            }
-
-            // ==================== INITIALIZATION ====================
-            function initApp() {
-                if (initialLoader) initialLoader.style.display = 'none';
-                renderLandingPage();
-            }
-
-            // Global function exposures for inline onclick handlers
-            window.navigateTo = navigateTo;
-            window.handleStudentRegistration = handleStudentRegistration;
-            window.handleClassChange = handleClassChange;
-            window.switchSATab = switchSATab;
-            window.searchStudentAssistant = searchStudentAssistant;
-            window.stopSAQRScanner = stopSAQRScanner;
-            window.handleAdminAssistLogin = handleAdminAssistLogin;
-            window.logoutAdminAssist = logoutAdminAssist;
-            window.switchAATab = switchAATab;
-            window.searchAAStudent = searchAAStudent;
-            window.markAAPresent = markAAPresent;
-            window.openAnswerSheetScan = openAnswerSheetScan;
-            window.stopAnswerSheetScanner = stopAnswerSheetScanner;
-            window.confirmAnswerSheet = confirmAnswerSheet;
-            window.loadAAAssignedStudents = loadAAAssignedStudents;
-            window.handleAdminLogin = handleAdminLogin;
-            window.logoutAdmin = logoutAdmin;
-            window.switchAdminTab = switchAdminTab;
-            window.filterStudentTable = filterStudentTable;
-            window.openStudentDetailModal = openStudentDetailModal;
-            window.updateStudentDetail = updateStudentDetail;
-            window.generateAdmitCard = generateAdmitCard;
-            window.openAddAssistantModal = openAddAssistantModal;
-            window.handleAddAssistant = handleAddAssistant;
-            window.openAddVolunteerModal = openAddVolunteerModal;
-            window.handleAddVolunteer = handleAddVolunteer;
-            window.generatePDFReport = generatePDFReport;
-
-            // Start the app
-            document.addEventListener('DOMContentLoaded', initApp);
-            // If DOM already loaded
-            if (document.readyState !== 'loading') {
-                initApp();
-            }
+        document.addEventListener('DOMContentLoaded', initApp);
+        if (document.readyState !== 'loading') initApp();
     </script>
 </body>
 </html>
