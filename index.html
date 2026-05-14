@@ -3,35 +3,21 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>RJF Scholarship Examination 2026</title>
-
     <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js">
-    </script>
-
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <!-- QR Code Scanner -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js">
-    </script>
-
-    <!-- jsPDF for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js">
-    </script>
-
-    <!-- html2canvas for admit card -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
-    </script>
-
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --primary: #1a237e;
@@ -364,7 +350,6 @@
             padding: 20px;
             border-radius: var(--radius-sm);
             background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);
-            cursor: default;
         }
 
         .stat-number {
@@ -394,7 +379,6 @@
             font-size: 0.85rem;
             margin-bottom: 5px;
             color: var(--text);
-            letter-spacing: 0.2px;
         }
 
         .form-group input,
@@ -423,7 +407,7 @@
             gap: 12px;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width:600px) {
             .form-row {
                 grid-template-columns: 1fr;
             }
@@ -474,30 +458,43 @@
             top: 0;
             font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        table tbody tr {
-            transition: var(--transition);
         }
 
         table tbody tr:hover {
             background: #fafbff;
         }
 
-        .trophy-gold {
-            background: linear-gradient(135deg, #fff8e1 0%, #fff 70%) !important;
-            border-left: 4px solid var(--gold);
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
 
-        .trophy-silver {
-            background: linear-gradient(135deg, #f5f5f5 0%, #fff 70%) !important;
-            border-left: 4px solid var(--silver);
+        .badge-success {
+            background: #e8f5e9;
+            color: #2e7d32;
         }
 
-        .trophy-bronze {
-            background: linear-gradient(135deg, #fbe9e7 0%, #fff 70%) !important;
-            border-left: 4px solid var(--bronze);
+        .badge-warning {
+            background: #fff8e1;
+            color: #f57f17;
+        }
+
+        .badge-info {
+            background: #e1f5fe;
+            color: #0277bd;
+        }
+
+        .badge-danger {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge-primary {
+            background: #e8eaf6;
+            color: #1a237e;
         }
 
         .modal-overlay {
@@ -555,7 +552,6 @@
             font-size: 1.5rem;
             cursor: pointer;
             color: var(--text-light);
-            transition: var(--transition);
         }
 
         .modal-close:hover {
@@ -563,46 +559,58 @@
             transform: rotate(90deg);
         }
 
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
+        .tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 4px;
+        }
+
+        .tab-btn {
+            padding: 9px 18px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
             font-weight: 600;
-            letter-spacing: 0.3px;
+            border-radius: 20px 20px 0 0;
+            transition: var(--transition);
+            font-size: 0.85rem;
+            color: var(--text-light);
+            position: relative;
         }
 
-        .badge-success {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .badge-warning {
-            background: #fff8e1;
-            color: #f57f17;
-        }
-
-        .badge-info {
-            background: #e1f5fe;
-            color: #0277bd;
-        }
-
-        .badge-danger {
-            background: #ffebee;
-            color: #c62828;
-        }
-
-        .badge-primary {
+        .tab-btn.active {
+            color: var(--primary);
             background: #e8eaf6;
-            color: #1a237e;
         }
 
-        #qr-reader {
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-            border: 2px solid var(--border);
-            max-width: 400px;
-            margin: 0 auto;
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e0e0e0;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 40px auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .toast {
@@ -652,124 +660,13 @@
             }
         }
 
-        .tabs {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-bottom: 18px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 4px;
-        }
-
-        .tab-btn {
-            padding: 9px 18px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            font-weight: 600;
-            border-radius: 20px 20px 0 0;
-            transition: var(--transition);
-            font-size: 0.85rem;
-            color: var(--text-light);
-            position: relative;
-        }
-
-        .tab-btn.active {
-            color: var(--primary);
-            background: #e8eaf6;
-        }
-
-        .tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -6px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: var(--accent);
-            border-radius: 3px;
-        }
-
-        .tab-btn:hover {
-            color: var(--primary);
-            background: #f5f5ff;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #e0e0e0;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 40px auto;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .highlight-row {
-            animation: highlightAnim 1.5s ease;
-        }
-
-        @keyframes highlightAnim {
-
-            0%,
-            100% {
-                background: transparent;
-            }
-
-            50% {
-                background: #fff9c4;
-            }
-        }
-
-        .anonymous-badge {
-            background: #1a237e;
-            color: #fff;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            display: inline-block;
-            margin-bottom: 12px;
-        }
-
-        .anonymous-warning {
-            background: #fff3e0;
-            border-left: 4px solid #ff6d00;
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            color: #e65100;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .trophy-icon {
-            font-size: 1.3rem;
-            vertical-align: middle;
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f5f5f5;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #c5c5c5;
-            border-radius: 3px;
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #464545;
+            font-size: 0.9rem;
+            margin-top: auto;
+            opacity: 1;
         }
 
         .text-center {
@@ -784,50 +681,12 @@
             margin-top: 18px;
         }
 
-        .mb-2 {
-            margin-bottom: 12px;
-        }
-
         .mb-3 {
             margin-bottom: 18px;
         }
 
-        .gap-2 {
-            gap: 10px;
-        }
-
-        .flex-wrap {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
         .w-full {
             width: 100%;
-        }
-
-        @media print {
-            body {
-                background: #fff;
-            }
-
-            .no-print {
-                display: none !important;
-            }
-
-            .card {
-                box-shadow: none;
-                border: 2px solid #000;
-            }
-        }
-
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #464545;
-            font-size: 0.9rem;
-            margin-top: auto;
-            opacity: 10;
-            animation: fadeIn 1s ease 2.4s forwards;
         }
     </style>
 </head>
@@ -857,13 +716,15 @@
         const rtdb = firebase.database();
         const storage = firebase.storage();
 
+        // ==================== TELEGRAM WORKER URL ====================
+        const TELEGRAM_WORKER_URL = 'https://weathered-pond-e88e.rjf2931639.workers.dev/'; // Worker deploy URL
+
         // ==================== GLOBAL STATE ====================
         const AppState = {
             currentPortal: null,
             adminAuth: null,
             adminAssistAuth: null,
             evalCommitteeAuth: null,
-            assignedStudents: [],
             allStudents: [],
             allAssistants: [],
             allVolunteers: [],
@@ -872,7 +733,28 @@
             realtimeResultsListener: null,
         };
 
-        // ==================== UTILITY FUNCTIONS ====================
+        // ==================== UTILS ====================
+        function processImageURL(url) {
+            if (!url || typeof url !== 'string') return url;
+            let processed = url.trim();
+            const driveFileMatch = processed.match(/drive\.google\.com\/file\/d\/([^\/\?]+)/i);
+            if (driveFileMatch) return `https://drive.google.com/uc?export=view&id=${driveFileMatch[1]}`;
+            const driveOpenMatch = processed.match(/drive\.google\.com\/open\?id=([^&]+)/i);
+            if (driveOpenMatch) return `https://drive.google.com/uc?export=view&id=${driveOpenMatch[1]}`;
+            const driveThumbMatch = processed.match(/drive\.google\.com\/thumbnail\?id=([^&]+)/i);
+            if (driveThumbMatch) return `https://drive.google.com/uc?export=view&id=${driveThumbMatch[1]}`;
+            if (processed.includes('dropbox.com') && processed.includes('?dl=0')) processed = processed.replace('?dl=0',
+                '?raw=1');
+            if (processed.includes('ibb.co')) {
+                const match = processed.match(/ibb\.co\/([a-zA-Z0-9]+)(\/.*)?/);
+                if (match) processed = match[2] && /\.[a-zA-Z]+$/.test(match[2]) ?
+                    `https://i.ibb.co/${match[1]}${match[2]}` : `https://i.ibb.co/${match[1]}.jpg`;
+            }
+            const imgurMatch = processed.match(/imgur\.com\/([a-zA-Z0-9]+)(\.[a-zA-Z]+)?/);
+            if (imgurMatch) processed = `https://i.imgur.com/${imgurMatch[1]}.jpg`;
+            return processed;
+        }
+
         function showToast(message, type = '') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -883,8 +765,7 @@
         }
 
         function generateRegID() {
-            const random = Math.floor(100000 + Math.random() * 900000);
-            return `RJFSE26-${random}`;
+            return 'RJFSE26-' + Math.floor(100000 + Math.random() * 900000);
         }
 
         function formatDate(date) {
@@ -955,6 +836,22 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // ==================== TELEGRAM UPLOAD (Worker দিয়ে) ====================
+        async function uploadToTelegram(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            const response = await fetch(TELEGRAM_WORKER_URL, {
+                method: 'POST',
+                body: formData,
+            });
+            const result = await response.json();
+            if (result.success) {
+                return result.url;
+            } else {
+                throw new Error('Telegram upload failed: ' + (result.error || 'Unknown error'));
+            }
+        }
+
         // ==================== LANDING PAGE ====================
         function renderLandingPage() {
             AppState.currentPortal = null;
@@ -1005,7 +902,7 @@
               </div>
             </div>
             <footer class="footer">
-                <p>©  2026 RJF Scholarship Examination. All rights reserved.</p>
+                <p>© 2026 RJF Scholarship Examination. All rights reserved.</p>
                 <p>Powered by FT Innovation</p>
                 <p>Design & Developed by <a href="https://www.facebook.com/md.tasrik.hossain"
                     class="text-decoration-none">Tasrik Hossain</a> | Rejaul Karim Siyam</p>
@@ -1013,125 +910,89 @@
           `;
         }
 
-        // ==================== STUDENT REGISTRATION PORTAL ====================
+        // ==================== STUDENT REGISTRATION ====================
         function renderStudentRegistration() {
             root.innerHTML = `
-            <div class="app-header no-print">
-              <div class="header-logo">
-                <div class="logo-icon">RJF</div>
-                <div>
-                  <div class="header-title">Student Registration</div>
-                  <div class="header-subtitle">RJFSE 2026</div>
+                <div class="app-header no-print">
+                    <div class="header-logo"><div class="logo-icon">RJF</div><div><div class="header-title">Student Registration</div><div class="header-subtitle">RJFSE 2026</div></div></div>
+                    <div class="header-actions"><button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button></div>
                 </div>
-              </div>
-              <div class="header-actions">
-                <button class="btn btn-outline btn-sm" onclick="navigateTo(null)">🏠 Home</button>
-              </div>
-            </div>
-            <div class="card" style="max-width:650px;margin:0 auto;">
-              <div class="card-header">📝 Registration Form</div>
-              <form id="studentRegForm" onsubmit="handleStudentRegistration(event)">
-                <div class="form-row">
-                  <div class="form-group"><label>Full Name *</label><input type="text" id="regName" required placeholder="Enter full name"></div>
-                  <div class="form-group"><label>Father's Name *</label><input type="text" id="regFather" required placeholder="Father's name"></div>
+                <div class="card" style="max-width:650px;margin:0 auto;">
+                    <div class="card-header">📝 Registration Form</div>
+                    <form id="studentRegForm" onsubmit="handleStudentRegistration(event)">
+                        <div class="form-row">
+                            <div class="form-group"><label>Full Name *</label><input type="text" id="regName" required></div>
+                            <div class="form-group"><label>Father's Name *</label><input type="text" id="regFather" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Mother's Name *</label><input type="text" id="regMother" required></div>
+                            <div class="form-group"><label>Date of Birth *</label><input type="date" id="regDob" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Class Roll *</label><input type="text" id="regRoll" required></div>
+                            <div class="form-group"><label>Class *</label><select id="regClass" required onchange="handleClassChange()">
+                                <option value="">Select</option><option value="8">Class 8</option><option value="9">Class 9</option><option value="10">Class 10</option>
+                            </select></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Group *</label><select id="regGroup" required><option value="">Select</option></select></div>
+                            <div class="form-group"><label>Gender *</label><select id="regGender" required><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Mobile Number *</label><input type="tel" id="regMobile" required placeholder="01XXXXXXXXX" pattern="01[0-9]{9}"></div>
+                                <div class="form-group">
+                                <label>Student Picture *</label>
+                            <input type="file" id="regPictureFile" required accept="image/*" onchange="previewPictureFile()">
+                        </div>
+                        </div>
+                        <small style="color:var(--text-light);">Provide a formal passport-size picture. Use for ADMIT Card.</small>
+                        <div id="regPreview" style="text-align:center;margin:10px 0;"></div>
+                        <button type="submit" class="btn btn-primary w-full mt-2" id="regSubmitBtn">📋 Register Now</button>
+                    </form>
+                    <div id="regResult" style="margin-top:16px;"></div>
                 </div>
-                <div class="form-row">
-                  <div class="form-group"><label>Mother's Name *</label><input type="text" id="regMother" required placeholder="Mother's name"></div>
-                  <div class="form-group"><label>Class Roll *</label><input type="text" id="regRoll" required placeholder="Class roll number"></div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label>Class *</label>
-                    <select id="regClass" required onchange="handleClassChange()">
-                      <option value="">Select Class</option>
-                      <option value="8">Class 8</option>
-                      <option value="9">Class 9</option>
-                      <option value="10">Class 10</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label>Group *</label>
-                    <select id="regGroup" required>
-                      <option value="">Select Group</option>
-                      <option value="Junior">Junior</option>
-                      <option value="Science">Science</option>
-                      <option value="Arts">Arts</option>
-                      <option value="Commerce">Commerce</option>
-                      <option value="Vocational">Vocational</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label>Gender *</label>
-                    <select id="regGender" required>
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div class="form-group"><label>Mobile Number *</label><input type="tel" id="regMobile" required placeholder="01XXXXXXXXX" pattern="01[0-9]{9}" title="Enter valid 11-digit mobile number starting with 01"></div>
-                </div>
-                <div class="form-group">
-                  <label>Student Picture (Optional)</label>
-                  <input type="file" id="regPicture" accept="image/*" style="padding:8px;">
-                  <small style="color:var(--text-light);">Upload a clear passport-size photo</small>
-                </div>
-                <div id="regPreview" style="text-align:center;margin:10px 0;"></div>
-                <button type="submit" class="btn btn-primary w-full mt-2" id="regSubmitBtn">📋 Register Now</button>
-              </form>
-              <div id="regResult" style="margin-top:16px;"></div>
-            </div>
-            <div style="text-align:center;padding:12px;">
-              <button class="btn btn-ghost btn-sm" onclick="navigateTo(null)">← Back to Home</button>
-            </div>
-            <footer class="footer">
-                <p>©  2026 RJF Scholarship Examination. All rights reserved.</p>
-                <p>Powered by FT Innovation</p>
-                <p>Design & Developed by <a href="https://www.facebook.com/md.tasrik.hossain"
-                    class="text-decoration-none">Tasrik Hossain</a> | Rejaul Karim Siyam</p>
-            </footer>
-          `;
+                <div style="text-align:center;padding:12px;"><button class="btn btn-ghost btn-sm" onclick="navigateTo(null)">← Home</button></div>`;
             handleClassChange();
-            const picInput = document.getElementById('regPicture');
-            if (picInput) {
-                picInput.addEventListener('change', function () {
-                    const preview = document.getElementById('regPreview');
-                    const file = this.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            preview.innerHTML =
-                                `<img src="${e.target.result}" style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);">`;
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        preview.innerHTML = '';
-                    }
-                });
-            }
         }
+
+        window.previewPictureURL = function () {
+            const url = document.getElementById('regPictureUrl').value.trim();
+            const preview = document.getElementById('regPreview');
+            if (!url) { preview.innerHTML = ''; return; }
+            const processed = processImageURL(url);
+            if (processed && (processed.startsWith('http://') || processed.startsWith('https://'))) {
+                preview.innerHTML =
+                    `<img src="${processed}" style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);" onerror="this.parentElement.innerHTML='<p style=color:red>❌ Image load failed</p>'">`;
+            } else {
+                preview.innerHTML = '<p style="color:red;">Invalid URL</p>';
+            }
+        };
+        window.previewPictureFile = function () {
+            const file = document.getElementById('regPictureFile').files[0];
+            const preview = document.getElementById('regPreview');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => preview.innerHTML =
+                    `<img src="${e.target.result}" style="width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);">`;
+                reader.readAsDataURL(file);
+            } else preview.innerHTML = '';
+        };
 
         function handleClassChange() {
             const classSelect = document.getElementById('regClass');
             const groupSelect = document.getElementById('regGroup');
             if (!classSelect || !groupSelect) return;
-            const selectedClass = classSelect.value;
+            const val = classSelect.value;
             groupSelect.innerHTML = '<option value="">Select Group</option>';
-            if (selectedClass === '8') {
+            if (val === '8') {
                 groupSelect.innerHTML = '<option value="Junior" selected>Junior</option>';
                 groupSelect.disabled = true;
-            } else if (selectedClass === '9' || selectedClass === '10') {
-                ['Science', 'Arts', 'Commerce', 'Vocational'].forEach(g => {
-                    groupSelect.innerHTML += `<option value="${g}">${g}</option>`;
-                });
+            } else if (val === '9' || val === '10') {
+                ['Science', 'Arts', 'Commerce', 'Vocational'].forEach(g => groupSelect.innerHTML +=
+                    `<option value="${g}">${g}</option>`);
                 groupSelect.disabled = false;
             } else {
                 groupSelect.disabled = false;
-                ['Junior', 'Science', 'Arts', 'Commerce', 'Vocational'].forEach(g => {
-                    groupSelect.innerHTML += `<option value="${g}">${g}</option>`;
-                });
             }
         }
 
@@ -1140,13 +1001,21 @@
             const submitBtn = document.getElementById('regSubmitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ Registering...';
-
             const regID = generateRegID();
+            const pictureUrl = document.getElementById('regPictureUrl').value.trim();
+            const pictureFile = document.getElementById('regPictureFile').files[0];
+            if (!pictureUrl && !pictureFile) {
+                showToast('Provide picture (URL or upload).', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '📋 Register Now';
+                return;
+            }
             const studentData = {
                 registrationID: regID,
                 name: document.getElementById('regName').value.trim(),
                 fatherName: document.getElementById('regFather').value.trim(),
                 motherName: document.getElementById('regMother').value.trim(),
+                dateOfBirth: document.getElementById('regDob').value,
                 classRoll: document.getElementById('regRoll').value.trim(),
                 class: document.getElementById('regClass').value,
                 group: document.getElementById('regGroup').value,
@@ -1160,44 +1029,42 @@
                 checkedIn: false,
                 present: false,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                pictureURL: ''
             };
-
             try {
-                const existingQuery = await db.collection('students').where('mobile', '==', studentData.mobile)
-                    .get();
-                if (!existingQuery.empty) {
-                    throw new Error('A student with this mobile number is already registered.');
-                }
-                const picFile = document.getElementById('regPicture').files[0];
-                if (picFile) {
-                    const picRef = storage.ref(`student_pictures/${regID}_${picFile.name}`);
-                    const uploadSnapshot = await picRef.put(picFile);
-                    studentData.pictureURL = await uploadSnapshot.ref.getDownloadURL();
+                const dup = await db.collection('students').where('mobile', '==', studentData.mobile).get();
+                if (!dup.empty) throw new Error('Mobile already registered.');
+                if (pictureFile) {
+                    studentData.pictureURL = await uploadToTelegram(pictureFile);
                 } else {
-                    studentData.pictureURL = '';
+                    const processed = processImageURL(pictureUrl);
+                    if (processed && (processed.startsWith('http://') || processed.startsWith('https://') || processed
+                        .startsWith('data:image/'))) {
+                        studentData.pictureURL = processed;
+                    } else throw new Error('Invalid picture URL.');
                 }
                 await db.collection('students').doc(regID).set(studentData);
                 await rtdb.ref('students/' + regID).set({ ...studentData, createdAt: Date.now() });
-
-                const resultDiv = document.getElementById('regResult');
-                resultDiv.innerHTML = `
-              <div style="background:#e8f5e9;padding:20px;border-radius:12px;text-align:center;animation:fadeInUp 0.5s ease;">
-                <div style="font-size:3rem;">✅</div>
-                <h3 style="color:#2e7d32;">Registration Successful!</h3>
-                <p style="font-size:1.2rem;font-weight:700;color:var(--primary);">Your Registration ID:</p>
-                <p style="font-size:2rem;font-weight:900;color:var(--accent);letter-spacing:2px;">${regID}</p>
-                <p style="color:var(--text-light);">Please save this ID for future reference.</p>
-                <p style="color:var(--text-light);">Class: ${studentData.class} | Group: ${studentData.group}</p>
-                <button class="btn btn-primary mt-2" onclick="window.print()">🖨️ Print Confirmation</button>
-              </div>
-            `;
+                document.getElementById('regResult').innerHTML = `
+                    <div style="background:#e8f5e9;padding:20px;border-radius:12px;text-align:center;animation:fadeInUp 0.5s ease;">
+                      <div style="font-size:3rem;">✅</div>
+                      <h3 style="color:#2e7d32;">Registration Successful!</h3>
+                      <p style="font-size:1.2rem;font-weight:700;color:var(--primary);">Your Registration ID:</p>
+                      <p style="font-size:2rem;font-weight:900;color:var(--accent);letter-spacing:2px;">${regID}</p>
+                      ${studentData.pictureURL ? `<div style="margin:12px auto;width:100px;height:100px;border-radius:50%;overflow:hidden;border:3px solid var(--primary);"><img src="${studentData.pictureURL}" style="width:100%;height:100%;object-fit:cover;" alt="Student Photo" onerror="this.style.display='none'"></div>` : ''}
+                      <p style="color:var(--text-light);">Full Name: ${studentData.name}</p>
+                      <p style="color:var(--text-light);">Date of Birth: ${studentData.dateOfBirth} | Gender: ${studentData.gender}</p>
+                      <p style="color:var(--text-light);">Roll: ${studentData.classRoll} | Class: ${studentData.class} | Group: ${studentData.group}</p>
+                      <p style="color:var(--text-light);">Mobile: ${studentData.mobile}</p>
+                      <button class="btn btn-primary mt-2" onclick="window.print()">🖨️ Print Confirmation</button>
+                    </div>`;
                 document.getElementById('studentRegForm').reset();
                 document.getElementById('regPreview').innerHTML = '';
                 handleClassChange();
-                showToast('Registration successful! ID: ' + regID, 'success');
-            } catch (error) {
-                showToast('Error: ' + error.message, 'error');
-                alert('Registration failed: ' + error.message);
+                showToast('Registration successful!', 'success');
+            } catch (e) {
+                showToast(e.message, 'error');
+                alert('Error: ' + e.message);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = '📋 Register Now';
@@ -1242,10 +1109,9 @@
               <button class="btn btn-ghost btn-sm" onclick="navigateTo(null)">← Back to Home</button>
             </div>
             <footer class="footer">
-                <p>©  2026 RJF Scholarship Examination. All rights reserved.</p>
+                <p>© 2026 RJF Scholarship Examination. All rights reserved.</p>
                 <p>Powered by FT Innovation</p>
-                <p>Design & Developed by <a href="https://www.facebook.com/md.tasrik.hossain"
-                    class="text-decoration-none">Tasrik Hossain</a> | Rejaul Karim Siyam</p>
+                <p>Design & Developed by <a href="https://www.facebook.com/md.tasrik.hossain" class="text-decoration-none">Tasrik Hossain</a> | Rejaul Karim Siyam</p>
             </footer>
           `;
             window._saQRScanner = null;
@@ -1337,6 +1203,7 @@
                   <tr><td style="font-weight:700;color:var(--text-light);">Name</td><td>${escapeHTML(student.name)}</td></tr>
                   <tr><td style="font-weight:700;color:var(--text-light);">Father's Name</td><td>${escapeHTML(student.fatherName)}</td></tr>
                   <tr><td style="font-weight:700;color:var(--text-light);">Mother's Name</td><td>${escapeHTML(student.motherName)}</td></tr>
+                  <tr><td style="font-weight:700;color:var(--text-light);">Date of Birth</td><td>${student.dateOfBirth || 'N/A'}</td></tr>
                   <tr><td style="font-weight:700;color:var(--text-light);">Class</td><td>${student.class}</td></tr>
                   <tr><td style="font-weight:700;color:var(--text-light);">Group</td><td>${student.group}</td></tr>
                   <tr><td style="font-weight:700;color:var(--text-light);">Class Roll</td><td>${student.classRoll}</td></tr>
@@ -1346,7 +1213,7 @@
                   <tr style="background:#fff9c4;"><td style="font-weight:700;color:var(--primary);">📌 Exam Room</td><td><strong style="font-size:1.3rem;color:var(--accent);">${student.examRoomNumber || 'Not Assigned Yet'}</strong></td></tr>
                   <tr style="background:#fff9c4;"><td style="font-weight:700;color:var(--primary);">💺 Sit Number</td><td><strong style="font-size:1.3rem;color:var(--accent);">${student.sitNumber || 'Not Assigned Yet'}</strong></td></tr>
                 </table>
-                ${student.pictureURL ? `<div style="text-align:center;margin-top:12px;"><img src="${student.pictureURL}" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);"></div>` : ''}
+                ${student.pictureURL ? `<div style="text-align:center;margin-top:12px;"><img src="${student.pictureURL}" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);" onerror="this.style.display='none'"></div>` : ''}
                 ${student.examRoomNumber ? `<div style="text-align:center;margin-top:12px;"><button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Print Details</button></div>` : '<p style="text-align:center;color:var(--warning);">⚠️ Exam room & seat not yet assigned. Please check back later.</p>'}
               </div>
             `;
@@ -1377,10 +1244,9 @@
               <div id="aaLoginError" style="margin-top:10px;text-align:center;"></div>
             </div>
             <footer class="footer">
-                <p>©  2026 RJF Scholarship Examination. All rights reserved.</p>
+                <p>© 2026 RJF Scholarship Examination. All rights reserved.</p>
                 <p>Powered by FT Innovation</p>
-                <p>Design & Developed by <a href="https://www.facebook.com/md.tasrik.hossain"
-                    class="text-decoration-none">Tasrik Hossain</a> | Rejaul Karim Siyam</p>
+                <p>Design & Developed by <a href="https://www.facebook.com/md.tasrik.hossain" class="text-decoration-none">Tasrik Hossain</a> | Rejaul Karim Siyam</p>
             </footer>
           `;
         }
@@ -1479,7 +1345,10 @@
         async function searchAAStudent() {
             const input = document.getElementById('aaSearchInput').value.trim();
             const detailDiv = document.getElementById('aaStudentDetail');
-            if (!input) { detailDiv.innerHTML = '<p style="color:var(--danger);">Please enter a Registration ID.</p>'; return; }
+            if (!input) {
+                detailDiv.innerHTML = '<p style="color:var(--danger);">Please enter a Registration ID.</p>';
+                return;
+            }
             detailDiv.innerHTML = '<div class="spinner"></div>';
             try {
                 let docSnap;
@@ -1514,7 +1383,8 @@
         async function markAAPresent(regID) {
             try {
                 await db.collection('students').doc(regID).update({
-                    present: true, checkedIn: true,
+                    present: true,
+                    checkedIn: true,
                     status: 'Present'
                 });
                 await rtdb.ref('students/' + regID).update({ present: true, checkedIn: true, status: 'Present' });
@@ -1565,7 +1435,10 @@
 
         function stopAnswerSheetScanner(regID) {
             const scanner = window['_ansScanner_' + regID];
-            if (scanner) { scanner.stop().catch(() => { }); delete window['_ansScanner_' + regID]; }
+            if (scanner) {
+                scanner.stop().catch(() => { });
+                delete window['_ansScanner_' + regID];
+            }
             const stopBtn = document.getElementById('stopAnswerQR_' + regID);
             if (stopBtn) stopBtn.style.display = 'none';
         }
@@ -1767,8 +1640,8 @@
 
                 case 'students':
                     let studentRows = '';
-                    const sortedStudents = [...students].sort((a, b) => (a.classRoll || '').localeCompare(b
-                        .classRoll || ''));
+                    const sortedStudents = [...students].sort((a, b) => (a.classRoll || '').localeCompare(b.classRoll ||
+                        ''));
                     sortedStudents.forEach((s, i) => {
                         studentRows += `
                   <tr class="${s.present ? '' : 'highlight-row'}" onclick="openStudentDetailModal('${s.id || s.registrationID}')" style="cursor:pointer;">
@@ -1888,11 +1761,10 @@
                     const data = d.data();
                     if (data.result) results.push({ id: d.id, ...data });
                 });
-                results.sort((a, b) => sortBy === 'roll' ? (a.classRoll || '').localeCompare(b.classRoll || '') : (b
-                    .result.score || 0) - (a.result.score || 0));
+                results.sort((a, b) => sortBy === 'roll' ? (a.classRoll || '').localeCompare(b.classRoll || '') : (b.result
+                    .score || 0) - (a.result.score || 0));
                 if (results.length === 0) {
-                    tbody.innerHTML =
-                        '<tr><td colspan="7" class="text-center">No results uploaded yet.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">No results uploaded yet.</td></tr>';
                     return;
                 }
                 let html = '';
@@ -1901,16 +1773,13 @@
                     let posDisplay = pos;
                     let rowClass = '';
                     if (pos === 1) {
-                        posDisplay =
-                            '<span class="trophy-icon">🥇</span> 1st';
+                        posDisplay = '<span class="trophy-icon">🥇</span> 1st';
                         rowClass = 'trophy-gold';
                     } else if (pos === 2) {
-                        posDisplay =
-                            '<span class="trophy-icon">🥈</span> 2nd';
+                        posDisplay = '<span class="trophy-icon">🥈</span> 2nd';
                         rowClass = 'trophy-silver';
                     } else if (pos === 3) {
-                        posDisplay =
-                            '<span class="trophy-icon">🥉</span> 3rd';
+                        posDisplay = '<span class="trophy-icon">🥉</span> 3rd';
                         rowClass = 'trophy-bronze';
                     }
                     html +=
@@ -1953,12 +1822,14 @@
                     <tr><td><strong>Name</strong></td><td>${escapeHTML(s.name)}</td></tr>
                     <tr><td><strong>Father</strong></td><td>${escapeHTML(s.fatherName)}</td></tr>
                     <tr><td><strong>Mother</strong></td><td>${escapeHTML(s.motherName)}</td></tr>
+                    <tr><td><strong>Date of Birth</strong></td><td>${s.dateOfBirth || 'N/A'}</td></tr>
                     <tr><td><strong>Class</strong></td><td>${s.class}</td></tr>
                     <tr><td><strong>Group</strong></td><td>${s.group}</td></tr>
                     <tr><td><strong>Roll</strong></td><td>${s.classRoll}</td></tr>
                     <tr><td><strong>Mobile</strong></td><td>${s.mobile}</td></tr>
                     <tr><td><strong>Status</strong></td><td>${s.status || 'Registered'}</td></tr>
                   </table>
+                  ${s.pictureURL ? `<div style="text-align:center;"><img src="${s.pictureURL}" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);" onerror="this.style.display='none'"></div>` : ''}
                   <div class="form-row">
                     <div class="form-group"><label>Exam Room Number</label><input type="text" id="editRoom" value="${s.examRoomNumber || ''}" placeholder="e.g. 301"></div>
                     <div class="form-group"><label>Sit Number</label><input type="text" id="editSit" value="${s.sitNumber || ''}" placeholder="e.g. A12"></div>
@@ -2026,10 +1897,12 @@
                   <p><strong>Father:</strong> ${escapeHTML(s.fatherName)}</p>
                   <p><strong>Class:</strong> ${s.class} | <strong>Group:</strong> ${s.group}</p>
                   <p><strong>Roll:</strong> ${s.classRoll}</p>
+                  <p><strong>Date of Birth:</strong> ${s.dateOfBirth || 'N/A'}</p>
                   <div style="background:#fff9c4;padding:12px;border-radius:8px;margin:12px 0;">
                     <p style="font-size:1.2rem;"><strong>📌 Exam Room:</strong> ${s.examRoomNumber || 'TBD'}</p>
                     <p style="font-size:1.2rem;"><strong>💺 Seat Number:</strong> ${s.sitNumber || 'TBD'}</p>
                   </div>
+                  ${s.pictureURL ? `<div style="text-align:center;"><img src="${s.pictureURL}" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);" onerror="this.style.display='none'"></div>` : ''}
                   <p style="font-size:0.8rem;color:#616161;">Please bring this admit card on exam day.</p>
                 </div>
               </div>
@@ -2225,10 +2098,9 @@
               <div id="evalLoginError" style="margin-top:10px;text-align:center;"></div>
             </div>
             <footer class="footer">
-                <p>©  2026 RJF Scholarship Examination. All rights reserved.</p>
+                <p>© 2026 RJF Scholarship Examination. All rights reserved.</p>
                 <p>Powered by FT Innovation</p>
-                <p>Design & Developed by <a href="https://www.facebook.com/md.tasrik.hossain"
-                    class="text-decoration-none">Tasrik Hossain</a> | Rejaul Karim Siyam</p>
+                <p>Design & Developed by <a href="https://www.facebook.com/md.tasrik.hossain" class="text-decoration-none">Tasrik Hossain</a> | Rejaul Karim Siyam</p>
             </footer>
           `;
         }
@@ -2297,20 +2169,22 @@
                     infoDiv.innerHTML =
                         `<p style="color:var(--success);">✅ Scanned: <strong>${sheetId}</strong></p><p>Searching...</p>`;
                     try {
-                        const qSnap = await db.collection('students').where('answerSheetNumber', '==', sheetId)
-                            .limit(1).get();
+                        const qSnap = await db.collection('students').where('answerSheetNumber', '==', sheetId).limit(
+                            1).get();
                         if (qSnap.empty) {
                             infoDiv.innerHTML +=
                                 '<p style="color:var(--danger);">❌ No student found with this answer sheet.</p>';
                             AppState.resultUploadSession = {
                                 scannedAnswerSheetId: null,
-                                scannedStudentId: null, studentData: null
+                                scannedStudentId: null,
+                                studentData: null
                             };
                             return;
                         }
                         const doc = qSnap.docs[0];
                         AppState.resultUploadSession = {
-                            scannedAnswerSheetId: sheetId, scannedStudentId: doc.id,
+                            scannedAnswerSheetId: sheetId,
+                            scannedStudentId: doc.id,
                             studentData: doc.data()
                         };
                         document.getElementById('evalDisplaySheetId').textContent = sheetId;
@@ -2330,7 +2204,10 @@
         }
 
         function stopEvalAnswerSheetScanner() {
-            if (window._evalAnsScanner) { window._evalAnsScanner.stop().catch(() => { }); window._evalAnsScanner = null; }
+            if (window._evalAnsScanner) {
+                window._evalAnsScanner.stop().catch(() => { });
+                window._evalAnsScanner = null;
+            }
             const stopBtn = document.getElementById('stopEvalAnsQR');
             if (stopBtn) stopBtn.style.display = 'none';
         }
@@ -2377,7 +2254,6 @@
         // ==================== GLOBAL FUNCTION EXPOSURES ====================
         window.navigateTo = navigateTo;
         window.handleStudentRegistration = handleStudentRegistration;
-        window.handleClassChange = handleClassChange;
         window.switchSATab = switchSATab;
         window.searchStudentAssistant = searchStudentAssistant;
         window.stopSAQRScanner = stopSAQRScanner;
@@ -2408,6 +2284,8 @@
         window.startEvalAnswerSheetScan = startEvalAnswerSheetScan;
         window.stopEvalAnswerSheetScanner = stopEvalAnswerSheetScanner;
         window.uploadEvalResult = uploadEvalResult;
+        window.previewPictureURL = window.previewPictureURL;
+        window.previewPictureFile = window.previewPictureFile;
 
         // ==================== INITIALIZATION ====================
         function initApp() {
