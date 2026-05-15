@@ -295,6 +295,32 @@
             pointer-events: none;
         }
 
+        /* Save to Gallery Button */
+        .btn-gallery {
+            background: linear-gradient(135deg, #4CAF50, #2e7d32);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(46, 125, 50, 0.35);
+            animation: pulse-green 2s infinite;
+        }
+
+        .btn-gallery:hover {
+            background: linear-gradient(135deg, #66BB6A, #388E3C);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(46, 125, 50, 0.45);
+        }
+
+        @keyframes pulse-green {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 14px rgba(46, 125, 50, 0.35);
+            }
+
+            50% {
+                box-shadow: 0 6px 30px rgba(46, 125, 50, 0.7);
+            }
+        }
+
         .card {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -688,6 +714,134 @@
         .w-full {
             width: 100%;
         }
+
+        /* Registration Success Card - for PNG capture */
+        .success-card {
+            background: linear-gradient(145deg, #ffffff, #f8f9ff);
+            border: 2px solid #1a237e;
+            border-radius: 20px;
+            padding: 30px 24px;
+            text-align: center;
+            max-width: 450px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(26, 35, 126, 0.15);
+        }
+
+        .success-card::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255, 109, 0, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .success-card::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: -20px;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(46, 125, 50, 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .success-card .success-icon {
+            font-size: 4rem;
+            margin-bottom: 8px;
+            animation: bounceIn 0.6s ease;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-card .success-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #2e7d32;
+            margin-bottom: 4px;
+        }
+
+        .success-card .reg-id-label {
+            font-size: 0.85rem;
+            color: #616161;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .success-card .reg-id-value {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #ff6d00;
+            letter-spacing: 2px;
+            margin: 4px 0 12px;
+            background: #fff8e1;
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 30px;
+        }
+
+        .success-card .student-photo {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #1a237e;
+            margin: 0 auto 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .success-card .student-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .success-card .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #e0e0e0;
+            font-size: 0.9rem;
+        }
+
+        .success-card .info-row .label {
+            font-weight: 600;
+            color: #1a237e;
+        }
+
+        .success-card .info-row .value {
+            color: #424242;
+            text-align: right;
+        }
+
+        .success-card .watermark {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.65rem;
+            color: #bdbdbd;
+            font-style: italic;
+        }
     </style>
 </head>
 
@@ -717,7 +871,7 @@
         const storage = firebase.storage();
 
         // ==================== TELEGRAM WORKER URL ====================
-        const TELEGRAM_WORKER_URL = 'https://weathered-pond-e88e.rjf2931639.workers.dev/'; // Worker deploy URL
+        const TELEGRAM_WORKER_URL = 'https://weathered-pond-e88e.rjf2931639.workers.dev/';
 
         // ==================== GLOBAL STATE ====================
         const AppState = {
@@ -836,7 +990,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // ==================== TELEGRAM UPLOAD (Worker দিয়ে) ====================
+        // ==================== TELEGRAM UPLOAD ====================
         async function uploadToTelegram(file) {
             const formData = new FormData();
             formData.append('image', file);
@@ -849,6 +1003,83 @@
                 return result.url;
             } else {
                 throw new Error('Telegram upload failed: ' + (result.error || 'Unknown error'));
+            }
+        }
+
+        // ==================== SAVE CARD TO GALLERY AS PNG ====================
+        async function saveSuccessCardToGallery(regID, studentName, localPictureDataURL) {
+            try {
+                const saveBtn = document.getElementById('saveToGalleryBtn');
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '⏳ Generating Image...';
+                }
+
+                const cardElement = document.getElementById('successCardForCapture');
+                if (!cardElement) {
+                    throw new Error('Card element not found');
+                }
+
+                // Ensure the image is fully loaded if it's a data URL
+                const img = cardElement.querySelector('img');
+                if (img && img.complete === false) {
+                    await new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+                }
+
+                const canvas = await html2canvas(cardElement, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false,
+                });
+
+                const blob = await new Promise(resolve => {
+                    canvas.toBlob(resolve, 'image/png', 1.0);
+                });
+
+                if (navigator.share && navigator.canShare) {
+                    const file = new File([blob], `RJFSE26_Registration_${regID}.png`, { type: 'image/png' });
+                    const shareData = {
+                        files: [file],
+                        title: 'RJFSE26 Registration Card',
+                        text: `Registration Card for ${studentName} - ID: ${regID}`
+                    };
+                    if (navigator.canShare(shareData)) {
+                        await navigator.share(shareData);
+                        showToast('✅ Card saved to gallery!', 'success');
+                        if (saveBtn) {
+                            saveBtn.disabled = false;
+                            saveBtn.innerHTML = '💾 Save to Gallery';
+                        }
+                        return;
+                    }
+                }
+
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `RJFSE26_Registration_${regID}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                showToast('✅ Registration card downloaded as PNG!', 'success');
+
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '💾 Save to Gallery';
+                }
+
+            } catch (error) {
+                console.error('Save to gallery error:', error);
+                showToast('❌ Could not save: ' + error.message, 'error');
+                const saveBtn = document.getElementById('saveToGalleryBtn');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '💾 Save to Gallery';
+                }
             }
         }
 
@@ -967,6 +1198,7 @@
                 preview.innerHTML = '<p style="color:red;">Invalid URL</p>';
             }
         };
+        
         window.previewPictureFile = function () {
             const file = document.getElementById('regPictureFile').files[0];
             const preview = document.getElementById('regPreview');
@@ -1002,14 +1234,28 @@
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ Registering...';
             const regID = generateRegID();
-            const pictureUrl = document.getElementById('regPictureUrl').value.trim();
             const pictureFile = document.getElementById('regPictureFile').files[0];
-            if (!pictureUrl && !pictureFile) {
-                showToast('Provide picture (URL or upload).', 'error');
+            if (!pictureFile) {
+                showToast('Please upload a picture.', 'error');
                 submitBtn.disabled = false;
                 submitBtn.textContent = '📋 Register Now';
                 return;
             }
+            
+            // Get local preview data URL for immediate display in success card
+            let localPictureDataURL = '';
+            const previewImg = document.querySelector('#regPreview img');
+            if (previewImg && previewImg.src) {
+                localPictureDataURL = previewImg.src;
+            } else {
+                // Fallback: read file as data URL
+                const reader = new FileReader();
+                localPictureDataURL = await new Promise((resolve) => {
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(pictureFile);
+                });
+            }
+
             const studentData = {
                 registrationID: regID,
                 name: document.getElementById('regName').value.trim(),
@@ -1034,34 +1280,41 @@
             try {
                 const dup = await db.collection('students').where('mobile', '==', studentData.mobile).get();
                 if (!dup.empty) throw new Error('Mobile already registered.');
+                
+                // Upload to Telegram for persistent storage
+                let uploadedUrl = '';
                 if (pictureFile) {
-                    studentData.pictureURL = await uploadToTelegram(pictureFile);
-                } else {
-                    const processed = processImageURL(pictureUrl);
-                    if (processed && (processed.startsWith('http://') || processed.startsWith('https://') || processed
-                        .startsWith('data:image/'))) {
-                        studentData.pictureURL = processed;
-                    } else throw new Error('Invalid picture URL.');
+                    uploadedUrl = await uploadToTelegram(pictureFile);
+                    studentData.pictureURL = uploadedUrl;
                 }
                 await db.collection('students').doc(regID).set(studentData);
                 await rtdb.ref('students/' + regID).set({ ...studentData, createdAt: Date.now() });
+                
+                // Show the success card with local picture (data URL) - this guarantees visibility
                 document.getElementById('regResult').innerHTML = `
-                    <div style="background:#e8f5e9;padding:20px;border-radius:12px;text-align:center;animation:fadeInUp 0.5s ease;">
-                      <div style="font-size:3rem;">✅</div>
-                      <h3 style="color:#2e7d32;">Registration Successful!</h3>
-                      <p style="font-size:1.2rem;font-weight:700;color:var(--primary);">Your Registration ID:</p>
-                      <p style="font-size:2rem;font-weight:900;color:var(--accent);letter-spacing:2px;">${regID}</p>
-                      ${studentData.pictureURL ? `<div style="margin:12px auto;width:100px;height:100px;border-radius:50%;overflow:hidden;border:3px solid var(--primary);"><img src="${studentData.pictureURL}" style="width:100%;height:100%;object-fit:cover;" alt="Student Photo" onerror="this.style.display='none'"></div>` : ''}
-                      <p style="color:var(--text-light);">Full Name: ${studentData.name}</p>
-                      <p style="color:var(--text-light);">Date of Birth: ${studentData.dateOfBirth} | Gender: ${studentData.gender}</p>
-                      <p style="color:var(--text-light);">Roll: ${studentData.classRoll} | Class: ${studentData.class} | Group: ${studentData.group}</p>
-                      <p style="color:var(--text-light);">Mobile: ${studentData.mobile}</p>
-                      <button class="btn btn-primary mt-2" onclick="window.print()">🖨️ Print Confirmation</button>
+                    <div id="successCardForCapture" class="success-card">
+                      <div class="watermark">RJFSE 2026</div>
+                      <div class="success-icon">✅</div>
+                      <div class="success-title">Registration Successful!</div>
+                      <p class="reg-id-label">Your Registration ID</p>
+                      <div class="reg-id-value">${regID}</div>
+                      <div class="student-photo"><img src="${localPictureDataURL}" alt="Student Photo" crossorigin="anonymous"></div>
+                      <div class="info-row"><span class="label">Full Name</span><span class="value">${escapeHTML(studentData.name)}</span></div>
+                      <div class="info-row"><span class="label">Date of Birth</span><span class="value">${studentData.dateOfBirth}</span></div>
+                      <div class="info-row"><span class="label">Gender</span><span class="value">${studentData.gender}</span></div>
+                      <div class="info-row"><span class="label">Class Roll</span><span class="value">${studentData.classRoll}</span></div>
+                      <div class="info-row"><span class="label">Class</span><span class="value">${studentData.class}</span></div>
+                      <div class="info-row"><span class="label">Group</span><span class="value">${studentData.group}</span></div>
+                      <div class="info-row"><span class="label">Mobile</span><span class="value">${studentData.mobile}</span></div>
+                    </div>
+                    <div style="text-align:center;margin-top:16px;">
+                      <button id="saveToGalleryBtn" class="btn btn-gallery w-full" onclick="saveSuccessCardToGallery('${regID}', '${escapeHTML(studentData.name)}', '${localPictureDataURL}')">💾 Save to Gallery</button>
                     </div>`;
+                
                 document.getElementById('studentRegForm').reset();
                 document.getElementById('regPreview').innerHTML = '';
                 handleClassChange();
-                showToast('Registration successful!', 'success');
+                showToast('Registration successful! Card ready to save.', 'success');
             } catch (e) {
                 showToast(e.message, 'error');
                 alert('Error: ' + e.message);
@@ -1486,7 +1739,7 @@
                   <td><span class="badge ${s.present ? 'badge-success' : 'badge-danger'}">${s.present ? 'Yes' : 'No'}</span></td>
                   <td><span class="badge ${s.answerSheetAttached ? 'badge-success' : 'badge-warning'}">${s.answerSheetAttached ? 'Yes' : 'No'}</span></td>
                   <td><span class="badge badge-info">${s.status || 'Registered'}</span></td>
-                </tr>`;
+                 </tr>`;
                 });
                 html += '</tbody></table></div>';
                 listDiv.innerHTML = html;
@@ -1644,12 +1897,12 @@
                         ''));
                     sortedStudents.forEach((s, i) => {
                         studentRows += `
-                  <tr class="${s.present ? '' : 'highlight-row'}" onclick="openStudentDetailModal('${s.id || s.registrationID}')" style="cursor:pointer;">
+                  <tr onclick="openStudentDetailModal('${s.id || s.registrationID}')" style="cursor:pointer;">
                     <td>${i + 1}</td><td>${s.id || s.registrationID}</td><td>${escapeHTML(s.name)}</td>
                     <td>${s.class}</td><td>${s.group}</td><td>${s.examRoomNumber || '-'}</td><td>${s.sitNumber || '-'}</td>
                     <td><span class="badge ${s.present ? 'badge-success' : 'badge-danger'}">${s.present ? 'Present' : 'Absent'}</span></td>
                     <td><span class="badge badge-info">${s.status || 'Registered'}</span></td>
-                  </tr>`;
+                   </tr>`;
                     });
                     content.innerHTML = `
                 <div class="card">
@@ -1662,14 +1915,14 @@
                   </div>
                   <div class="table-container"><table id="studentTable"><thead><tr>
                     <th>#</th><th>Reg ID</th><th>Name</th><th>Class</th><th>Group</th><th>Room</th><th>Sit</th><th>Present</th><th>Status</th>
-                  </tr></thead><tbody>${studentRows}</tbody></table></div>
+                   </tr></thead><tbody>${studentRows}</tbody></table></div>
                 </div>
               `;
                     break;
 
                 case 'assistants':
                     let asstRows = assistants.map((a, i) => `
-                <tr><td>${i + 1}</td><td>${escapeHTML(a.name)}</td><td>${a.age || '-'}</td><td>${a.mobile}</td><td>${a.assignedClass || 'All'}</td><td>${formatDate(a.createdAt)}</td></tr>
+                 <tr><td>${i + 1}</td><td>${escapeHTML(a.name)}</td><td>${a.age || '-'}</td><td>${a.mobile}</td><td>${a.assignedClass || 'All'}</td><td>${formatDate(a.createdAt)}</td></tr>
               `).join('');
                     content.innerHTML = `
                 <div class="card">
@@ -1682,7 +1935,7 @@
 
                 case 'volunteers':
                     let volRows = volunteers.map((v, i) => `
-                <tr><td>${i + 1}</td><td>${escapeHTML(v.name)}</td><td>${v.mobile}</td><td>${v.gender || '-'}</td><td>${escapeHTML(v.address || '-')}</td><td>${v.workArea || '-'}</td></tr>
+                 <tr><td>${i + 1}</td><td>${escapeHTML(v.name)}</td><td>${v.mobile}</td><td>${v.gender || '-'}</td><td>${escapeHTML(v.address || '-')}</td><td>${v.workArea || '-'}</td></tr>
               `).join('');
                     content.innerHTML = `
                 <div class="card">
@@ -1769,21 +2022,8 @@
                 }
                 let html = '';
                 results.forEach((r, i) => {
-                    const pos = i + 1;
-                    let posDisplay = pos;
-                    let rowClass = '';
-                    if (pos === 1) {
-                        posDisplay = '<span class="trophy-icon">🥇</span> 1st';
-                        rowClass = 'trophy-gold';
-                    } else if (pos === 2) {
-                        posDisplay = '<span class="trophy-icon">🥈</span> 2nd';
-                        rowClass = 'trophy-silver';
-                    } else if (pos === 3) {
-                        posDisplay = '<span class="trophy-icon">🥉</span> 3rd';
-                        rowClass = 'trophy-bronze';
-                    }
                     html +=
-                        `<tr class="${rowClass}"><td><strong>${posDisplay}</strong></td><td>${escapeHTML(r.name)}</td><td>${r.classRoll || 'N/A'}</td><td>${r.result.answerSheetId || 'N/A'}</td><td><strong>${r.result.score}</strong></td><td>${escapeHTML(r.result.comments || '-')}</td><td>${formatDate(r.result.uploadedAt)}</td></tr>`;
+                        `<tr><td><strong>${i + 1}</strong></td><td>${escapeHTML(r.name)}</td><td>${r.classRoll || 'N/A'}</td><td>${r.result.answerSheetId || 'N/A'}</td><td><strong>${r.result.score}</strong></td><td>${escapeHTML(r.result.comments || '-')}</td><td>${formatDate(r.result.uploadedAt)}</td></tr>`;
                 });
                 tbody.innerHTML = html;
             } catch (e) {
@@ -1828,7 +2068,7 @@
                     <tr><td><strong>Roll</strong></td><td>${s.classRoll}</td></tr>
                     <tr><td><strong>Mobile</strong></td><td>${s.mobile}</td></tr>
                     <tr><td><strong>Status</strong></td><td>${s.status || 'Registered'}</td></tr>
-                  </table>
+                   </table>
                   ${s.pictureURL ? `<div style="text-align:center;"><img src="${s.pictureURL}" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:3px solid var(--primary);" onerror="this.style.display='none'"></div>` : ''}
                   <div class="form-row">
                     <div class="form-group"><label>Exam Room Number</label><input type="text" id="editRoom" value="${s.examRoomNumber || ''}" placeholder="e.g. 301"></div>
@@ -2129,8 +2369,12 @@
               </div>
             </div>
             <div class="card">
-              <div class="anonymous-badge">🔒 ANONYMOUS MODE - Student identity hidden</div>
-              <div class="anonymous-warning"><span style="font-size:1.5rem;">⚠️</span><span><strong>Privacy:</strong> You cannot see the student's name. Only the answer sheet QR is used.</span></div>
+              <div style="background:#f3e5f5;padding:12px;border-radius:10px;margin-bottom:16px;text-align:center;border:2px solid #6a1b9a;">
+                <span style="font-size:1.5rem;">🔒</span> <strong>ANONYMOUS MODE</strong> - Student identity hidden
+              </div>
+              <div style="background:#fff3e0;padding:12px;border-radius:10px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+                <span style="font-size:1.5rem;">⚠️</span><span><strong>Privacy:</strong> You cannot see the student's name. Only the answer sheet QR is used.</span>
+              </div>
               <p style="margin-bottom:16px;">Step 1: Scan the answer sheet QR code.</p>
               <div id="evalStep1">
                 <button class="btn btn-info w-full" onclick="startEvalAnswerSheetScan()">📷 Scan Answer Sheet QR</button>
@@ -2141,7 +2385,9 @@
               <div id="evalStep2" style="display:none;">
                 <hr style="margin:16px 0;">
                 <p>Step 2: Enter score.</p>
-                <div class="anonymous-warning">📋 Answer Sheet: <strong id="evalDisplaySheetId"></strong></div>
+                <div style="background:#e8eaf6;padding:12px;border-radius:10px;margin-bottom:12px;text-align:center;">
+                  📋 Answer Sheet: <strong id="evalDisplaySheetId"></strong>
+                </div>
                 <div class="form-group"><label>📊 Score *</label><input type="number" id="evalScore" placeholder="e.g. 85" min="0" max="200" required style="font-size:1.2rem;text-align:center;"></div>
                 <div class="form-group"><label>💬 Comments</label><input type="text" id="evalComments" placeholder="Optional remarks"></div>
                 <button class="btn btn-success w-full" onclick="uploadEvalResult()">✅ Upload Result</button>
@@ -2254,6 +2500,7 @@
         // ==================== GLOBAL FUNCTION EXPOSURES ====================
         window.navigateTo = navigateTo;
         window.handleStudentRegistration = handleStudentRegistration;
+        window.saveSuccessCardToGallery = saveSuccessCardToGallery;
         window.switchSATab = switchSATab;
         window.searchStudentAssistant = searchStudentAssistant;
         window.stopSAQRScanner = stopSAQRScanner;
