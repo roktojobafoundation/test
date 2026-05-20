@@ -2436,32 +2436,53 @@
                                 });
                             } catch (e) { console.warn("QR Error for", regId, e); }
                         }
-                        // --- PROFILE PICTURE FETCHING (Weserv Proxy Method) ---
+
+                        // --- PROFILE PICTURE FETCHING (Robust Retry Method) ---
                         if (photoUrl) {
-                            try {
-                                // 1. Wrap the original URL in the wsrv.nl proxy and force PNG output
-                                const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(photoUrl)}&output=png`;
+                            let retries = 3;
+                            let success = false;
 
-                                // 2. Fetch the newly converted, CORS-friendly image
-                                const imgRes = await fetch(proxyUrl);
-                                if (!imgRes.ok) throw new Error("Image proxy fetch failed");
+                            while (retries > 0 && !success) {
+                                try {
+                                    const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(photoUrl)}&output=png`;
+                                    const imgRes = await fetch(proxyUrl);
 
-                                const imgBytes = await imgRes.arrayBuffer();
+                                    // If we hit a Rate Limit (429), pause for 1 second and try again
+                                    if (imgRes.status === 429) {
+                                        console.warn(`Rate limited on image for ${regId}. Retrying...`);
+                                        await new Promise(resolve => setTimeout(resolve, 1000));
+                                        retries--;
+                                        continue;
+                                    }
 
-                                // 3. Embed directly as PNG
-                                const profileImg = await mergedPdf.embedPng(imgBytes);
+                                    if (!imgRes.ok) throw new Error(`HTTP Error ${imgRes.status}`);
 
-                                // 4. Draw to PDF
-                                page.drawImage(profileImg, {
-                                    x: currentX + photoOffsetX,
-                                    y: currentY + photoOffsetY,
-                                    width: 74.5,
-                                    height: 74.5,
-                                });
-                            } catch (e) { console.warn("Photo Fetch/Embed Error for", regId, e); }
+                                    const imgBytes = await imgRes.arrayBuffer();
+                                    const profileImg = await mergedPdf.embedPng(imgBytes);
+
+                                    page.drawImage(profileImg, {
+                                        x: currentX + photoOffsetX,
+                                        y: currentY + photoOffsetY,
+                                        width: 74.5,
+                                        height: 74.5,
+                                    });
+
+                                    success = true; // Break the loop if successful
+
+                                } catch (e) {
+                                    retries--;
+                                    if (retries === 0) {
+                                        console.warn(`Failed to fetch photo for ${regId} after 3 attempts:`, e);
+                                    } else {
+                                        // Pause for 500ms before trying again on generic errors
+                                        await new Promise(resolve => setTimeout(resolve, 500));
+                                    }
+                                }
+                            }
                         }
+                        // Add a tiny 150ms pause between processing each student to avoid rate limits
+                        await new Promise(resolve => setTimeout(resolves, 150));
                     }
-
 
                 }
 
