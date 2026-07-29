@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RJFSE26 QR Codes – ৪ সারি</title>
+    <!-- QRCode.js লাইব্রেরি -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #f5f7fb;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            padding: 2rem 1.5rem;
+        }
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #475569;
+            font-size: 1.05rem;
+            margin-bottom: 2.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 1.2rem;
+        }
+        .subtitle strong {
+            background: #dbeafe;
+            padding: 0.2rem 1rem;
+            border-radius: 20px;
+            color: #1d4ed8;
+        }
+        .section {
+            margin-bottom: 3.5rem;
+        }
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #0f172a;
+            padding: 0.5rem 1.5rem;
+            background: #ffffff;
+            border-radius: 12px;
+            display: inline-block;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            margin-bottom: 1.8rem;
+            border-left: 6px solid #2563eb;
+        }
+        /* === প্রতি সারিতে ঠিক ৪টি কলাম === */
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.2rem;
+            background: #ffffff;
+            padding: 1.8rem 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eef2f6;
+            max-width: 900px; /* প্রয়োজনমতো বাড়ানো/কমানো যায় */
+            margin: 0 auto;
+        }
+        .qr-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fafcff;
+            padding: 0.9rem 0.4rem 0.7rem;
+            border-radius: 14px;
+            transition: 0.15s ease;
+            border: 1px solid #e9edf2;
+        }
+        .qr-item:hover {
+            border-color: #94a3b8;
+            background: #f8faff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.04);
+        }
+        .qr-item .qr-container {
+            width: 110px;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 10px;
+            padding: 4px;
+        }
+        .qr-item .qr-container canvas,
+        .qr-item .qr-container img {
+            max-width: 100% !important;
+            max-height: 100% !important;
+            width: auto !important;
+            height: auto !important;
+        }
+        .qr-label {
+            font-size: 0.68rem;
+            font-weight: 500;
+            color: #1e293b;
+            background: #f1f5f9;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            margin-top: 0.5rem;
+            text-align: center;
+            word-break: break-all;
+            max-width: 100%;
+            line-height: 1.3;
+            letter-spacing: 0.2px;
+        }
+        .qr-label small {
+            font-weight: 400;
+            color: #64748b;
+        }
+        .footer-note {
+            text-align: center;
+            margin-top: 2.8rem;
+            color: #64748b;
+            font-size: 0.95rem;
+            background: #f1f4f9;
+            padding: 0.9rem 1.5rem;
+            border-radius: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .footer-note a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer-note a:hover {
+            text-decoration: underline;
+        }
+
+        /* মোবাইল স্ক্রিনেও ৪ কলাম রাখা (ছোট হলে স্কেল হবে) */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+            .qr-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.6rem;
+                padding: 1rem 0.5rem;
+                max-width: 100%;
+            }
+            .qr-item .qr-container {
+                width: 70px;
+                height: 70px;
+            }
+            .qr-label {
+                font-size: 0.5rem;
+                padding: 0.1rem 0.3rem;
+            }
+            .section-title {
+                font-size: 1.3rem;
+                padding: 0.3rem 1rem;
+            }
+            h1 {
+                font-size: 1.6rem;
+            }
+        }
+        /* প্রিন্টের জন্য */
+        @media print {
+            .qr-item {
+                break-inside: avoid;
+                border: 1px solid #ccc;
+                background: #fff !important;
+            }
+            .qr-grid {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                max-width: 100%;
+            }
+            .section-title {
+                background: #f0f0f0;
+            }
+            body {
+                background: #fff;
+                padding: 0.3in;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📱 RJFSE26 · Answer Sheet QR Code Set</h1>
+    <div class="subtitle">
+        <strong>180 codes</strong> &nbsp;·&nbsp; 3 series (8 / 9 / 10) · 15 rows × 4 columns
+    </div>
+
+    <!-- ===== সিরিজ ৮ ===== -->
+    <div class="section" id="series-8">
+        <div class="section-title">🔵 Series 8</div>
+        <div class="qr-grid" id="grid-8"></div>
+    </div>
+
+    <!-- ===== সিরিজ ৯ ===== -->
+    <div class="section" id="series-9">
+        <div class="section-title">🟢 Series 9</div>
+        <div class="qr-grid" id="grid-9"></div>
+    </div>
+
+    <!-- ===== সিরিজ ১০ ===== -->
+    <div class="section" id="series-10">
+        <div class="section-title">🟠 Series 10</div>
+        <div class="qr-grid" id="grid-10"></div>
+    </div>
+
+    <div class="footer-note">
+        ⚡ সব QR কোড <a href="https://github.com/davidshimjs/qrcodejs" target="_blank">QRCode.js</a> দিয়ে তৈরি &nbsp;·&nbsp;
+        প্রতিটি কোডে সম্পূর্ণ স্ট্রিং এনকোড করা আছে &nbsp;·&nbsp; <span id="count-display"></span>
+    </div>
+
+    <script>
+        // ----------------------------------------------
+        // ১. ডেটা – সব ১৮০টি কোড, সিরিজ অনুযায়ী
+        // ----------------------------------------------
+        const series8 = [
+            "RJFSE26-8A-5HD7BJ", "RJFSE26-8B-1QJ1BV", "RJFSE26-8C-JCNP17", "RJFSE26-8D-ZVQE97",
+            "RJFSE26-8A-9PK412", "RJFSE26-8B-F5ITQM", "RJFSE26-8C-3RCI8K", "RJFSE26-8D-TDBPOP",
+            "RJFSE26-8A-TW6S1D", "RJFSE26-8B-C82805", "RJFSE26-8C-D061VC", "RJFSE26-8D-RS2SAK",
+            "RJFSE26-8A-5E9W01", "RJFSE26-8B-PRC3DA", "RJFSE26-8C-RN5WON", "RJFSE26-8D-BS8LLY",
+            "RJFSE26-8A-Z51L47", "RJFSE26-8B-PADA66", "RJFSE26-8C-TTBC9D", "RJFSE26-8D-GDM3U9",
+            "RJFSE26-8A-S8QMFY", "RJFSE26-8B-C2JGE0", "RJFSE26-8C-FN5RMQ", "RJFSE26-8D-SAY2E9",
+            "RJFSE26-8A-OMDLLN", "RJFSE26-8B-13WLE0", "RJFSE26-8C-7ZNUW7", "RJFSE26-8D-16KYPI",
+            "RJFSE26-8A-VP98AP", "RJFSE26-8B-OQTYZ9", "RJFSE26-8C-5QQS0A", "RJFSE26-8D-L42EQB",
+            "RJFSE26-8A-59M6AW", "RJFSE26-8B-ZYZYQ3", "RJFSE26-8C-6GWYIV", "RJFSE26-8D-DYG4E0",
+            "RJFSE26-8A-NAZOE3", "RJFSE26-8B-9JZDZW", "RJFSE26-8C-D17VYD", "RJFSE26-8D-14D6XT",
+            "RJFSE26-8A-FROM4F", "RJFSE26-8B-L8PROI", "RJFSE26-8C-A0FTFP", "RJFSE26-8D-MRTV3N",
+            "RJFSE26-8A-05YRUO", "RJFSE26-8B-3IUTO9", "RJFSE26-8C-06JSTD", "RJFSE26-8D-3T3KXM",
+            "RJFSE26-8A-K6UFDO", "RJFSE26-8B-XLUWH9", "RJFSE26-8C-N4HRPB", "RJFSE26-8D-GIZ9R9",
+            "RJFSE26-8A-WGC2C4", "RJFSE26-8B-LNOUQS", "RJFSE26-8C-48V5CT", "RJFSE26-8D-FBTNLB",
+            "RJFSE26-8A-WAHQBK", "RJFSE26-8B-0BFOMA", "RJFSE26-8C-G41OU6", "RJFSE26-8D-PRXVR3"
+        ];
+
+        const series9 = [
+            "RJFSE26-9A-5HD7BJ", "RJFSE26-9B-1QJ1BV", "RJFSE26-9C-JCNP17", "RJFSE26-9D-ZVQE97",
+            "RJFSE26-9A-9PK412", "RJFSE26-9B-F5ITQM", "RJFSE26-9C-3RCI8K", "RJFSE26-9D-TDBPOP",
+            "RJFSE26-9A-TW6S1D", "RJFSE26-9B-C82805", "RJFSE26-9C-D061VC", "RJFSE26-9D-RS2SAK",
+            "RJFSE26-9A-5E9W01", "RJFSE26-9B-PRC3DA", "RJFSE26-9C-RN5WON", "RJFSE26-9D-BS8LLY",
+            "RJFSE26-9A-Z51L47", "RJFSE26-9B-PADA66", "RJFSE26-9C-TTBC9D", "RJFSE26-9D-GDM3U9",
+            "RJFSE26-9A-S8QMFY", "RJFSE26-9B-C2JGE0", "RJFSE26-9C-FN5RMQ", "RJFSE26-9D-SAY2E9",
+            "RJFSE26-9A-OMDLLN", "RJFSE26-9B-13WLE0", "RJFSE26-9C-7ZNUW7", "RJFSE26-9D-16KYPI",
+            "RJFSE26-9A-VP98AP", "RJFSE26-9B-OQTYZ9", "RJFSE26-9C-5QQS0A", "RJFSE26-9D-L42EQB",
+            "RJFSE26-9A-59M6AW", "RJFSE26-9B-ZYZYQ3", "RJFSE26-9C-6GWYIV", "RJFSE26-9D-DYG4E0",
+            "RJFSE26-9A-NAZOE3", "RJFSE26-9B-9JZDZW", "RJFSE26-9C-D17VYD", "RJFSE26-9D-14D6XT",
+            "RJFSE26-9A-FROM4F", "RJFSE26-9B-L8PROI", "RJFSE26-9C-A0FTFP", "RJFSE26-9D-MRTV3N",
+            "RJFSE26-9A-05YRUO", "RJFSE26-9B-3IUTO9", "RJFSE26-9C-06JSTD", "RJFSE26-9D-3T3KXM",
+            "RJFSE26-9A-K6UFDO", "RJFSE26-9B-XLUWH9", "RJFSE26-9C-N4HRPB", "RJFSE26-9D-GIZ9R9",
+            "RJFSE26-9A-WGC2C4", "RJFSE26-9B-LNOUQS", "RJFSE26-9C-48V5CT", "RJFSE26-9D-FBTNLB",
+            "RJFSE26-9A-WAHQBK", "RJFSE26-9B-0BFOMA", "RJFSE26-9C-G41OU6", "RJFSE26-9D-PRXVR3"
+        ];
+
+        const series10 = [
+            "RJFSE26-10A-5HD7BJ", "RJFSE26-10B-1QJ1BV", "RJFSE26-10C-JCNP17", "RJFSE26-10D-ZVQE97",
+            "RJFSE26-10A-9PK412", "RJFSE26-10B-F5ITQM", "RJFSE26-10C-3RCI8K", "RJFSE26-10D-TDBPOP",
+            "RJFSE26-10A-TW6S1D", "RJFSE26-10B-C82805", "RJFSE26-10C-D061VC", "RJFSE26-10D-RS2SAK",
+            "RJFSE26-10A-5E9W01", "RJFSE26-10B-PRC3DA", "RJFSE26-10C-RN5WON", "RJFSE26-10D-BS8LLY",
+            "RJFSE26-10A-Z51L47", "RJFSE26-10B-PADA66", "RJFSE26-10C-TTBC9D", "RJFSE26-10D-GDM3U9",
+            "RJFSE26-10A-S8QMFY", "RJFSE26-10B-C2JGE0", "RJFSE26-10C-FN5RMQ", "RJFSE26-10D-SAY2E9",
+            "RJFSE26-10A-OMDLLN", "RJFSE26-10B-13WLE0", "RJFSE26-10C-7ZNUW7", "RJFSE26-10D-16KYPI",
+            "RJFSE26-10A-VP98AP", "RJFSE26-10B-OQTYZ9", "RJFSE26-10C-5QQS0A", "RJFSE26-10D-L42EQB",
+            "RJFSE26-10A-59M6AW", "RJFSE26-10B-ZYZYQ3", "RJFSE26-10C-6GWYIV", "RJFSE26-10D-DYG4E0",
+            "RJFSE26-10A-NAZOE3", "RJFSE26-10B-9JZDZW", "RJFSE26-10C-D17VYD", "RJFSE26-10D-14D6XT",
+            "RJFSE26-10A-FROM4F", "RJFSE26-10B-L8PROI", "RJFSE26-10C-A0FTFP", "RJFSE26-10D-MRTV3N",
+            "RJFSE26-10A-05YRUO", "RJFSE26-10B-3IUTO9", "RJFSE26-10C-06JSTD", "RJFSE26-10D-3T3KXM",
+            "RJFSE26-10A-K6UFDO", "RJFSE26-10B-XLUWH9", "RJFSE26-10C-N4HRPB", "RJFSE26-10D-GIZ9R9",
+            "RJFSE26-10A-WGC2C4", "RJFSE26-10B-LNOUQS", "RJFSE26-10C-48V5CT", "RJFSE26-10D-FBTNLB",
+            "RJFSE26-10A-WAHQBK", "RJFSE26-10B-0BFOMA", "RJFSE26-10C-G41OU6", "RJFSE26-10D-PRXVR3"
+        ];
+
+        // ----------------------------------------------
+        // ২. রেন্ডার ফাংশন – প্রতি গ্রিডে QR বসাবে
+        // ----------------------------------------------
+        function renderQRCodes(containerId, codes) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+
+            codes.forEach((text) => {
+                const item = document.createElement('div');
+                item.className = 'qr-item';
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'qr-container';
+
+                try {
+                    const qrDiv = document.createElement('div');
+                    wrapper.appendChild(qrDiv);
+                    new QRCode(qrDiv, {
+                        text: text,
+                        width: 110,
+                        height: 110,
+                        colorDark: '#0f172a',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } catch (e) {
+                    wrapper.textContent = '⚠️';
+                    wrapper.style.fontSize = '2rem';
+                    console.warn('QR generation failed for:', text, e);
+                }
+
+                const label = document.createElement('div');
+                label.className = 'qr-label';
+                label.textContent = text;
+
+                item.appendChild(wrapper);
+                item.appendChild(label);
+                container.appendChild(item);
+            });
+        }
+
+        // ----------------------------------------------
+        // ৩. তিনটি সিরিজ রেন্ডার
+        // ----------------------------------------------
+        renderQRCodes('grid-8', series8);
+        renderQRCodes('grid-9', series9);
+        renderQRCodes('grid-10', series10);
+
+        // মোট কাউন্ট দেখানো
+        const total = series8.length + series9.length + series10.length;
+        document.getElementById('count-display').textContent =
+            `মোট: ${total}টি QR কোড (প্রতিটি সিরিজে ${series8.length}টি)`;
+
+        console.log(`✅ সব ${total}টি QR কোড তৈরি হয়েছে।`);
+    </script>
+
+</body>
+</html>
